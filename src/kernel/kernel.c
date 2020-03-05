@@ -38,10 +38,13 @@ void kernel_start(void)
 
   while (1)
     {
+      /* Priority order. */
+
       //wd_reset();
       //io();
       //semaphores();
       //queues();
+      //ipc();
       scheduler();
     }
 }

@@ -1,5 +1,5 @@
 # tool marcros
-CC := avr-gcc
+CC := avr-gcc -mmcu=atmega1284 -g -Og
 AR := avr-ar
 CCFLAG :=
 DBGFLAG := -g

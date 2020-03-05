@@ -9,12 +9,14 @@
 #define TASK_H_
 
 
-typedef struct task_tag
+typedef struct
 {
-  int tid;
-  int state;
-  int hit;
-  int delay;
+  unsigned int tid;
+  unsigned int idx;
+  unsigned int hit;
+  unsigned int delay;
+  unsigned int state;
+  unsigned int last_state;
   void *entry_point;
   void *arg;
   void *saved_data;
@@ -29,8 +31,15 @@ enum {
   TASK_STATE_IO_WAIT,
   TASK_STATE_SEM_WAIT,
   TASK_STATE_SLEEP,
+  TASK_STATE_PAUSED,
+  TASK_STATE_RESUMED,
 } task_state;
 
 extern task_t task_array[MAX_TASKS];
+
+int task_resume(const int tid);
+int task_pause(const int tid);
+int task_destroy(const int tid);
+int task_list(void);
 
 #endif /* TASK_H_ */

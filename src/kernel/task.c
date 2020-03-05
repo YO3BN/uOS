@@ -24,15 +24,11 @@ int task_create(void (*entry_point)(void*), void *arg)
       goto return_error;
     }
 
-  /* Go to first empty array element. */
+  /* Go to the first free array element. */
 
-  for (i = 0; i < MAX_TASKS; i++)
-    {
-      if (task_array[i].state == TASK_STATE_INVALID)
-        {
-          break;
-        }
-    }
+  for (i = 0; i < MAX_TASKS &&
+      task_array[i].state != TASK_STATE_INVALID &&
+      task_array[i].state != TASK_STATE_EXITED; i++);
 
   /* Check if array is full. */
 
@@ -52,20 +48,65 @@ return_error:
 }
 
 
-int task_start(const int tid)
+int task_resume(const int tid)
 {
+  //TODO implement
   return 1;
 }
 
 
-int task_stop(const int tid)
+int task_pause(const int tid)
 {
+  //TODO re-implement
+  int idx;
+  task_t *task;
+
+  for (idx = 0, task = &task_array[idx]; idx < MAX_TASKS; idx++)
+    {
+      task = &task_array[idx];
+
+      if (task->tid == tid)
+        {
+          task->last_state = task->state;
+          task->state = TASK_STATE_PAUSED;
+          return 1;
+        }
+    }
+
+  return 0;
+}
+
+
+int task_destroy(const int tid)
+{
+  //TODO implement
   return 1;
 }
 
 
-int task_kill(const int tid)
+int task_list()
 {
+  //TODO implement
   return 1;
+}
+
+int task_sleep(const unsigned int tid, const unsigned int ticks)
+{
+  int idx;
+  task_t *task;
+
+  for (idx = 0, task = &task_array[idx]; idx < MAX_TASKS; idx++)
+    {
+      task = &task_array[idx];
+
+      if (task->tid == tid)
+        {
+          task->state = TASK_STATE_SLEEP;
+          task->delay = ticks;
+          return 1;
+        }
+    }
+
+  return 0;
 }
 

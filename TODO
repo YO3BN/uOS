@@ -1,0 +1,9 @@
+- move demo and apps to src
+- make overall build system
+- global volatile variable for work/sleep
+- global pointer which points to task element in task_array ?
+- rename task_array to g_task_array
+- maybe in future remove demo and leave only apps
+- code
+- debug
+- etc
