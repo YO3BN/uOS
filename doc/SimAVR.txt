@@ -1,0 +1,2 @@
+https://blog.oddbit.com/post/2019-01-22-debugging-attiny-code-pt-1/
+https://blog.oddbit.com/post/2019-01-22-debugging-attiny-code-pt-3/

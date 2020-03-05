@@ -8,29 +8,9 @@
 
 #define MAX_TASKS 100
 
-typedef struct task_tag
-{
-  int tid;
-  int state;
-  int counter;
-  void *entry_point;
-  void *arg;
-  void *saved_data;
-} task_t;
-
+#include "task.h"
 
 task_t task_array[MAX_TASKS];
-
-
-enum {
-  TASK_STATE_INVALID = -1,
-  TASK_STATE_EXITED = 0,
-  TASK_STATE_READY = 1,
-  TASK_STATE_RUNNING,
-  TASK_STATE_IO_WAIT,
-  TASK_STATE_SEM_WAIT,
-  TASK_STATE_SLEEP,
-} task_state;
 
 
 int task_create(void (*entry_point)(void*), void *arg)
@@ -70,3 +50,22 @@ int task_create(void (*entry_point)(void*), void *arg)
 return_error:
   return -1;
 }
+
+
+int task_start(const int tid)
+{
+  return 1;
+}
+
+
+int task_stop(const int tid)
+{
+  return 1;
+}
+
+
+int task_kill(const int tid)
+{
+  return 1;
+}
+

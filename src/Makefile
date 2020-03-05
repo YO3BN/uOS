@@ -9,6 +9,7 @@ CCOBJFLAG := $(CCFLAG) -c
 BIN_PATH := ../bin
 OBJ_PATH := ../bin
 SRC_PATH := kernel
+INC_PATH := $(SRC_PATH)/include
 DBG_PATH := debug
 
 # compile marcros
@@ -34,10 +35,10 @@ default: all
 # non-phony targets
 $(TARGET): $(OBJ)
 #	$(CC) $(CCFLAG) -o $@ $?
-	$(AR) cr $(BIN_PATH)/$(TARGET_NAME) $(BIN_PATH)/*.o
+	$(AR) rcs $(BIN_PATH)/$(TARGET_NAME) $(BIN_PATH)/*.o
 
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.c*
-	$(CC) $(CCOBJFLAG) -o $@ $<
+	$(CC) $(CCOBJFLAG) -I$(INC_PATH) -o $@ $<
 
 $(DBG_PATH)/%.o: $(SRC_PATH)/%.c*
 	$(CC) $(CCOBJFLAG) $(DBGFLAG) -o $@ $<
