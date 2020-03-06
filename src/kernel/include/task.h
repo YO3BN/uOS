@@ -14,7 +14,7 @@ typedef struct
   unsigned int tid;
   unsigned int idx;
   unsigned int hit;
-  unsigned int delay;
+  unsigned int sleep;
   unsigned int state;
   unsigned int last_state;
   void *entry_point;
@@ -35,11 +35,18 @@ enum {
   TASK_STATE_RESUMED,
 } task_state;
 
-extern task_t task_array[MAX_TASKS];
 
-int task_resume(const int tid);
-int task_pause(const int tid);
-int task_destroy(const int tid);
+extern task_t g_task_array[MAX_TASKS];
+extern task_t *g_task;
+
+
+int task_resume(int tid);
+int task_pause(int tid);
+int task_destroy(int tid);
 int task_list(void);
+
+
+unsigned int task_getid(void);
+
 
 #endif /* TASK_H_ */

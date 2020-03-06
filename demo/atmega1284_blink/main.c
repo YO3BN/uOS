@@ -8,8 +8,6 @@
 #include <stddef.h>
 #include <stdio.h>
 
-
-#include <util/delay.h>
 #include <avr/io.h>
 
 #define MAX_TASKS 100
@@ -18,24 +16,20 @@
 
 void first_task(void *arg)
 {
-  task_t *task = arg;
-
   // Set de port.
   DDRB = 0xff;
   PORTB = 0xff;
 
   // Stop the task.
-  task_pause(task->tid);
+  task_pause(0);
 }
 
 
 void second_task(void *arg)
 {
-  task_t *task = arg;
-
   PORTB ^= PORTB;
 
-  task_sleep(task->tid, 10);
+  task_sleep(0, 10);
 }
 
 

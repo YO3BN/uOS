@@ -15,39 +15,39 @@
 void scheduler(void)
 {
   int idx = 0;
-  task_t *task;
   void (*task_main)(void*);
+
+  /* Consume ticks. */
+
+  //g_ticks--;
 
   /* Go through all tasks. */
 
-  for (idx = 0; task_array[idx].state != TASK_STATE_INVALID &&
+  for (idx = 0; g_task_array[idx].state != TASK_STATE_INVALID &&
         idx < MAX_TASKS; idx++)
     {
 
-      task = &task_array[idx];
+      g_task = &g_task_array[idx];
 
-      task->hit++;
-
-      switch (task->state)
+      switch (g_task->state)
       {
         /* These statements are priority ordered. */
 
         case TASK_STATE_READY:
-          /* Run the task with its own structure as an argument.
-           * Also mark it as RUNNING.
-           */
+          /* Run the task, also mark it as RUNNING. */
 
-          task->state = TASK_STATE_RUNNING;
-          task_main = (void(*)(void*)) task->entry_point;
-          task_main(task);
+          g_task->hit++;
+          g_task->state = TASK_STATE_RUNNING;
+          task_main = (void(*)(void*)) g_task->entry_point;
+          task_main(g_task->arg);
 
           /* Re-mark it as READY if there was no request
            * to change the state.
            */
 
-          if (task->state == TASK_STATE_RUNNING)
+          if (g_task->state == TASK_STATE_RUNNING)
             {
-              task->state = TASK_STATE_READY;
+              g_task->state = TASK_STATE_READY;
             }
           break;
 
@@ -63,28 +63,16 @@ void scheduler(void)
            * no matter if it is waiting for something else.
            */
 
-          task->delay--;
-          if (task->delay == 0)
+          if (g_task->sleep == 0)
             {
-              task->state = TASK_STATE_READY;
+              g_task->state = TASK_STATE_READY;
+            }
+          else
+            {
+              g_task->sleep--;
             }
           break;
 
-
-        case TASK_STATE_IO_WAIT:
-          // check IOs for this task (owner/tid)
-          // and change state if necessary
-          break;
-
-
-        case TASK_STATE_SEM_WAIT:
-          // check Semaphores for this task (owner/tid)
-          // and change state if necessary
-          break;
-
-
-        case TASK_STATE_RESUMED:
-          break;
 
         default:
           break;

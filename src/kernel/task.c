@@ -10,7 +10,9 @@
 
 #include "task.h"
 
-task_t task_array[MAX_TASKS];
+
+task_t g_task_array[MAX_TASKS];
+task_t *g_task;
 
 
 int task_create(void (*entry_point)(void*), void *arg)
@@ -24,11 +26,11 @@ int task_create(void (*entry_point)(void*), void *arg)
       goto return_error;
     }
 
-  /* Go to the first free array element. */
+  /* Find the first free array element. */
 
   for (i = 0; i < MAX_TASKS &&
-      task_array[i].state != TASK_STATE_INVALID &&
-      task_array[i].state != TASK_STATE_EXITED; i++);
+      g_task_array[i].state != TASK_STATE_INVALID &&
+      g_task_array[i].state != TASK_STATE_EXITED; i++);
 
   /* Check if array is full. */
 
@@ -37,9 +39,9 @@ int task_create(void (*entry_point)(void*), void *arg)
       goto return_error;
     }
 
-  task_array[i].tid = i;
-  task_array[i].state = TASK_STATE_READY;
-  task_array[i].entry_point = entry_point;
+  g_task_array[i].tid = i;
+  g_task_array[i].state = TASK_STATE_READY;
+  g_task_array[i].entry_point = entry_point;
 
   return 1;
 
@@ -55,15 +57,21 @@ int task_resume(const int tid)
 }
 
 
-int task_pause(const int tid)
+int task_pause(int tid)
 {
   //TODO re-implement
   int idx;
   task_t *task;
 
-  for (idx = 0, task = &task_array[idx]; idx < MAX_TASKS; idx++)
+  /* */
+  if (!tid)
     {
-      task = &task_array[idx];
+      tid = task_getid();
+    }
+
+  for (idx = 0, task = &g_task_array[idx]; idx < MAX_TASKS; idx++)
+    {
+      task = &g_task_array[idx];
 
       if (task->tid == tid)
         {
@@ -77,7 +85,7 @@ int task_pause(const int tid)
 }
 
 
-int task_destroy(const int tid)
+int task_destroy(int tid)
 {
   //TODO implement
   return 1;
@@ -90,23 +98,37 @@ int task_list()
   return 1;
 }
 
-int task_sleep(const unsigned int tid, const unsigned int ticks)
+
+int task_sleep(unsigned int tid, const unsigned int ticks)
 {
   int idx;
   task_t *task;
 
-  for (idx = 0, task = &task_array[idx]; idx < MAX_TASKS; idx++)
+  /* */
+  if (!tid)
     {
-      task = &task_array[idx];
+      tid = task_getid();
+    }
+
+  for (idx = 0, task = &g_task_array[idx]; idx < MAX_TASKS; idx++)
+    {
+      task = &g_task_array[idx];
 
       if (task->tid == tid)
         {
           task->state = TASK_STATE_SLEEP;
-          task->delay = ticks;
+          task->sleep = ticks;
           return 1;
         }
     }
 
   return 0;
 }
+
+
+inline unsigned int task_getid(void)
+{
+  return g_task->tid;
+}
+
 

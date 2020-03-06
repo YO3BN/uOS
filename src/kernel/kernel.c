@@ -17,16 +17,20 @@ void kernel_init(void)
   unsigned char *ptr;
 
   // TODO init kernel globals
-  /* TODO Configure SysTick. */
-  /* TODO Configure watch dog. */
+
+  g_task = NULL;
 
   /* Clear the task array. */
 
-  ptr = (unsigned char *) task_array;
-  for (i = 0; i < sizeof(task_array); i++)
+  for (i = 0; i < sizeof(g_task_array); i++)
     {
-      ptr[i] = 0;
+      *(((unsigned char*) g_task_array) + i) = 0;
     }
+
+  /* TODO Configure SysTick. */
+
+  /* TODO Configure watch dog. */
+
 }
 
 
