@@ -6,3 +6,7 @@
  */
 
 
+int io(void *s)
+{
+  return 0;
+}

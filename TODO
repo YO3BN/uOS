@@ -1,8 +1,16 @@
 - move demo and apps to src
 - make overall build system
-- produce / consume systicks, start failsafe context-switch
+- produce / consume systicks, start failsafe context-switch kernel superviser
 - maybe in future remove demo and leave only apps
 - tid different of idx
+- event subscribe for multiple modules/tasks
+- implement archint type (fast integer)
+- think about io,ipc,sem,sched be separate modules dynamically inserted in kconsume_events??
+- decide if have to use separate work queue for kernel modules
+- some kernel work events cannot be conumed immediately? they have to remain stored in queue??
+- statistics idle time, load, etc?
+- task timer - waiting timer - have to implement semapahores before.
+- task state IPC_WAIT?
 - code
 - debug
 - etc

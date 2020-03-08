@@ -128,7 +128,10 @@ enable_interrupts()
 }
 
 
+disable_interrupts()
+{
 
+}
 
 
 

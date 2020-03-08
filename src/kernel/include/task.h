@@ -8,6 +8,7 @@
 #ifndef TASK_H_
 #define TASK_H_
 
+#define MAX_TASKS 100
 
 typedef struct
 {

@@ -6,3 +6,7 @@
  */
 
 
+int semaphore(void *s)
+{
+  return 0;
+}

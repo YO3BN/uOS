@@ -6,3 +6,7 @@
  */
 
 
+int queue(void *s)
+{
+  return 0;
+}
