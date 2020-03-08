@@ -53,18 +53,24 @@ void scheduler(void)
 
 
         case TASK_STATE_PAUSED:
-          /* Just skip it, but note that delay is not decremented anymore. */
+          /* Just skip it, but note that delay is not
+           * decremented anymore.
+           */
 
           break;
 
 
         case TASK_STATE_SLEEP:
-          /* If the task is sleeping, just decrease the the tick delay,
+          /* If the task is sleeping, just decrease its sleep tick,
            * no matter if it is waiting for something else.
+           *
+           * Schedule it to run on next tick when sleep ticks
+           * were consumed.
            */
 
-          if (g_task->sleep == 0)
+          if (g_task->sleep <= 1)
             {
+              g_task->sleep = 0;
               g_task->state = TASK_STATE_READY;
             }
           else
@@ -80,6 +86,7 @@ void scheduler(void)
     }
   //TODO if no task in array => sleep/shutdown/panic
   //TODO no work to do then sleep
+  tick();
 }
 
 

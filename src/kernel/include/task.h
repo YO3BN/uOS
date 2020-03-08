@@ -23,7 +23,8 @@ typedef struct
 } task_t;
 
 
-enum {
+enum
+{
   TASK_STATE_INVALID = 0,
   TASK_STATE_EXITED,
   TASK_STATE_READY,

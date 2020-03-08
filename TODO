@@ -1,6 +1,6 @@
 - move demo and apps to src
 - make overall build system
-- global volatile variable for work/sleep => g_ticks
+- produce / consume systicks, start failsafe context-switch
 - maybe in future remove demo and leave only apps
 - tid different of idx
 - code

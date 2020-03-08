@@ -14,6 +14,26 @@
 task_t g_task_array[MAX_TASKS];
 task_t *g_task;
 
+/*
+typedef enum
+{
+  WORK_TYPE_NONE      = 0,
+  WORK_TYPE_TICK      = 1,
+  WORK_TYPE_IO        = 2,
+  WORK_TYPE_SEMAPHORE = 4,
+  WORK_TYPE_QUEUE     = 8,
+  WORK_TYPE_IPC       = 16,
+  WORK_TYPE_SCHEDULER = 32,
+} kernel_work_type_t;
+*/
+
+
+/*
+ * TODO intialize tasks
+ *   int i;
+ *   g_task = NULL;
+*/
+
 
 int task_create(void (*entry_point)(void*), void *arg)
 {
