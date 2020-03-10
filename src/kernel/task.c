@@ -5,23 +5,14 @@
  *      Author: yo3bn
  */
 
-
+extern volatile unsigned long g_systicks;
 #define MAX_TASKS 100
 
 #include "task.h"
 
 
 task_t g_task_array[MAX_TASKS];
-task_t *g_task;
-
-
-
-
-/*
- * TODO intialize tasks
- *   int i;
- *   g_task = NULL;
-*/
+task_t *g_running_task;
 
 
 int task_create(void (*entry_point)(void*), void *arg)
@@ -77,7 +68,7 @@ int task_pause(int tid)
     {
       tid = task_getid();
     }
-
+//TODO replace this loop by function
   for (idx = 0, task = &g_task_array[idx]; idx < MAX_TASKS; idx++)
     {
       task = &g_task_array[idx];
@@ -118,7 +109,7 @@ int task_sleep(unsigned int tid, const unsigned int ticks)
     {
       tid = task_getid();
     }
-
+//TODO replace this loop by function
   for (idx = 0, task = &g_task_array[idx]; idx < MAX_TASKS; idx++)
     {
       task = &g_task_array[idx];
@@ -126,7 +117,9 @@ int task_sleep(unsigned int tid, const unsigned int ticks)
       if (task->tid == tid)
         {
           task->state = TASK_STATE_SLEEP;
-          task->sleep = ticks;
+          task->sleep_ticks = ticks;
+          task->sleep_stamp = g_systicks; // TODO this in critical section
+
           return 1;
         }
     }
@@ -137,7 +130,7 @@ int task_sleep(unsigned int tid, const unsigned int ticks)
 
 inline unsigned int task_getid(void)
 {
-  return g_task->tid;
+  return g_running_task->tid;
 }
 
 

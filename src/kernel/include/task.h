@@ -10,21 +10,8 @@
 
 #define MAX_TASKS 100
 
-typedef struct
-{
-  unsigned int tid;
-  unsigned int idx;
-  unsigned int hit;
-  unsigned int sleep;
-  unsigned int state;
-  unsigned int last_state;
-  void *entry_point;
-  void *arg;
-  void *saved_data;
-} task_t;
 
-
-enum
+typedef enum
 {
   TASK_STATE_INVALID = 0,
   TASK_STATE_EXITED,
@@ -35,11 +22,29 @@ enum
   TASK_STATE_SLEEP,
   TASK_STATE_PAUSED,
   TASK_STATE_RESUMED,
-} task_state;
+} task_state_t;
+
+
+typedef struct
+{
+  void *arg;
+  void *saved_data;
+  void *entry_point;
+
+  unsigned int tid;
+  unsigned int idx;
+  unsigned int hit;
+
+  unsigned long sleep_ticks;
+  unsigned long sleep_stamp;
+
+  task_state_t state;
+  task_state_t last_state;
+} task_t;
 
 
 extern task_t g_task_array[MAX_TASKS];
-extern task_t *g_task;
+extern task_t *g_running_task;
 
 
 int task_resume(int tid);

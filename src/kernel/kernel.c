@@ -69,7 +69,7 @@ static kernel_event_t *kcheck_events_queue(void)
 
 static void kconsume_events(kernel_event_t *event_queue)
 {
-  int work = 0;
+  int work_todo = 0;
   kernel_event_t *event = NULL;
 
   /* For all event in the queue retrieve one event
@@ -82,12 +82,12 @@ static void kconsume_events(kernel_event_t *event_queue)
 
       do
         {
-          work |= io(event);
-          work |= semaphore(event);
-          work |= ipc(event);
-          work |= scheduler(event);
+          work_todo |= io(event);
+          work_todo |= semaphore(event);
+          work_todo |= ipc(event);
+          work_todo |= scheduler(event);
         }
-      while (work);
+      while (work_todo);
     }
 }
 

@@ -6,6 +6,7 @@
  */
 
 #define NULL (void*)0
+extern volatile unsigned long g_systicks;
 
 #include "task.h"
 #include "kernel.h"
@@ -14,7 +15,7 @@
 int scheduler(kernel_event_t *event)
 {
   int idx   = 0;
-  int ret   = 1; //TODO ret true or false; true only when generate an event from here
+  int ret   = 0; //TODO ret true or false; true only when generate an event from here
   int work_todo  = 0;
 
   task_t *task = NULL;
@@ -27,6 +28,7 @@ int scheduler(kernel_event_t *event)
   do
     {
       /* Clear previous work. */
+
       work_todo = 0;
 
       /* Go through all tasks. */
@@ -44,13 +46,18 @@ int scheduler(kernel_event_t *event)
              case TASK_STATE_READY:
                /* Run the task, also mark it as RUNNING. */
 
+               g_running_task = task;
                task->hit++;
                task->state = TASK_STATE_RUNNING;
                task_main = (void(*)(void*)) task->entry_point;
                task_main(task->arg);
+               g_running_task = NULL;
 
                /* Re-mark it as READY if there was no request
                 * to change the state.
+                *
+                * For example, this happens when the task exited simply
+                * using return.
                 */
 
                if (task->state == TASK_STATE_RUNNING)
@@ -70,41 +77,37 @@ int scheduler(kernel_event_t *event)
 
 
              case TASK_STATE_SLEEP:
-               /* It the received event is SysTick, then decrement
-                * one sleep tick, otherwise just skip it.
-                */
-
                if (event->type == KERNEL_EVENT_IRQ_SYSTICK)
                  {
-                   /* If the task is sleeping, just decrease its sleep tick,
-                    * no matter if it is waiting for something else.
-                    *
-                    * Schedule it to run on next tick when sleep ticks
-                    * were consumed.
-                    */
-
-                   if (task->sleep <= 1)
+                   //TODO get g_systicks in critical section
+                   if (task->sleep_stamp + task->sleep_ticks >= g_systicks)
                      {
-                       task->sleep = 0;
+                       task->sleep_stamp = 0;
+                       task->sleep_ticks = 0;
                        task->state = TASK_STATE_READY;
                        work_todo = 1;
-                     }
-                   else
-                     {
-                       task->sleep--;
                      }
                  }
                break;
 
 
              case TASK_STATE_IO_WAIT:
-               // TODO implement
+               if (event->type == KERNEL_EVENT_IO_RCVD)
+                 {
+                   //TODO check_io_for_this_task();
+                   //TODO if yes, then set it ready to run and set work to do.
+                 }
                break;
 
 
              case TASK_STATE_SEM_WAIT:
-               //TODO implement
+               if (event->type == KERNEL_EVENT_SEM_UNLOCKED)
+                 {
+                   //TODO check_sem_for_this_task();
+                   //TODO if yes, then set it ready to run and set work to do.
+                 }
                break;
+
 
             default:
               break;

@@ -5,7 +5,7 @@
  *      Author: yo3bn
  */
 
-volatile unsigned int g_systicks;
+volatile unsigned long g_systicks;  //todo maybe long long? or other approach!
 
 void reset_watchdog(void)
 {
