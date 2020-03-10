@@ -6,21 +6,36 @@
  */
 
 #define NULL (void*)0
-#define CONFIG_EVENT_MAX_QUEUE 32
+#define CONFIG_EVENT_QUEUE_SIZE 32
+#define CONFIG_EVENT_QUEUES 2
 #define CONFIG_EVENT_MAX_SIZE sizeof(unsigned long)
+#define CONFIG
+
 
 
 #include "kernel.h"
 
 
-/* INFO: Dual queue */
-static volatile kernel_event_t g_event_queue1[CONFIG_EVENT_MAX_QUEUE];
-static volatile kernel_event_t g_event_queue2[CONFIG_EVENT_MAX_QUEUE];
+typedef enum
+{
+  EVENT_QUEUE_INACTIVE = 0,
+  EVENT_QUEUE_ACTIVE,
+  EVENT_QUEUE_READY,
+} event_queue_status_t;
+
+
+typedef volatile struct
+{
+  kernel_event_t queue[CONFIG_EVENT_QUEUE_SIZE];
+  event_queue_status_t status;
+  unsigned char data[CONFIG_EVENT_MAX_SIZE][CONFIG_EVENT_QUEUE_SIZE];
+} kernel_event_queue_t;
 
 
 /* Create a buffer in BSS, in which data from events is stored. */
-static volatile unsigned char
-g_event_buffer[CONFIG_EVENT_MAX_SIZE][CONFIG_EVENT_MAX_QUEUE];
+static volatile kernel_event_queue_t g_event_queue[CONFIG_EVENT_QUEUES];
+
+
 
 
 int kevent_enqueue_critical(kernel_event_type_t type, void *data, int size)
