@@ -12,13 +12,25 @@
 #include "kernel.h"
 
 
-
 static volatile struct
 {
   unsigned char read_idx;
   unsigned char write_idx;
   kernel_event_t event[CONFIG_MAX_EVENTS];
 } g_kevent_array;
+
+
+void kput_event_in_buffer(unsigned char type, unsigned char data)
+{
+  g_kevent_array.event[g_kevent_array.write_idx].type = type;
+  g_kevent_array.event[g_kevent_array.write_idx].data = data;
+  g_kevent_array.write_idx++;
+
+  if (g_kevent_array.write_idx >= CONFIG_MAX_EVENTS)
+    {
+      g_kevent_array.write_idx = 0;
+    }
+}
 
 
 int kget_event_from_buffer(kernel_event_t *event)
@@ -74,20 +86,6 @@ int kget_event_from_buffer(kernel_event_t *event)
 
   return 0;
 }
-
-
-void kput_event_in_buffer(unsigned char type, unsigned char data)
-{
-  g_kevent_array.event[g_kevent_array.write_idx].type = type;
-  g_kevent_array.event[g_kevent_array.write_idx].data = data;
-  g_kevent_array.write_idx++;
-
-  if (g_kevent_array.write_idx >= CONFIG_MAX_EVENTS)
-    {
-      g_kevent_array.write_idx = 0;
-    }
-}
-
 
 
 static void kconsume_events(kernel_event_t *event)

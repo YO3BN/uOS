@@ -35,8 +35,7 @@ typedef struct
   unsigned int idx;
   unsigned int hit;
 
-  unsigned long sleep_ticks;
-  unsigned long sleep_stamp;
+  unsigned long wakeup_ticks;
 
   task_state_t state;
   task_state_t last_state;

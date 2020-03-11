@@ -39,7 +39,7 @@ int task_create(void (*entry_point)(void*), void *arg)
       goto return_error;
     }
 
-  g_task_array[i].tid = i;
+  g_task_array[i].tid = i + 1;
   g_task_array[i].state = TASK_STATE_READY;
   g_task_array[i].entry_point = entry_point;
 
@@ -50,10 +50,31 @@ return_error:
 }
 
 
-int task_resume(const int tid)
+int task_resume(int tid)
 {
-  //TODO implement
-  return 1;
+  //TODO re-implement
+  int idx;
+  task_t *task;
+
+  /* */
+  if (!tid)
+    {
+      tid = task_getid();
+    }
+//TODO replace this loop by function
+  for (idx = 0, task = &g_task_array[idx]; idx < MAX_TASKS; idx++)
+    {
+      task = &g_task_array[idx];
+
+      if (task->tid == tid)
+        {
+          task->state = task->last_state;
+          task->state = TASK_STATE_RESUMED;
+          return 1;
+        }
+    }
+
+  return 0;
 }
 
 
@@ -117,8 +138,7 @@ int task_sleep(unsigned int tid, const unsigned int ticks)
       if (task->tid == tid)
         {
           task->state = TASK_STATE_SLEEP;
-          task->sleep_ticks = ticks;
-          task->sleep_stamp = g_systicks; // TODO this in critical section
+          task->wakeup_ticks = ticks + g_systicks; // TODO this in critical section
 
           return 1;
         }

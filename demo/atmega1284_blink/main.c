@@ -136,6 +136,7 @@ uint16_t com_recv(void)
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 
+#include "kernel.h"
 
 static volatile uint8_t tick_overflow;
  extern volatile unsigned long g_systicks;
@@ -144,6 +145,7 @@ ISR(TIMER1_OVF_vect)
 {
   tick_overflow = (uint8_t) 1;
   g_systicks++;
+  kput_event_in_buffer(KERNEL_EVENT_IRQ_SYSTICK, 0);
 }
 
 
@@ -246,16 +248,26 @@ uint8_t tick(void)
 
 
 
+/*void zprintf(__VA_ARGS__, ...)
+{
+  char buf[255];
+  sprintf(buf, __VA_ARGS__);
+  com_send(buf, strlen(buf));
+}*/
 
 
 
-
-
+#define zprintf(...) { char buf[123]; sprintf(buf, __VA_ARGS__); com_send(buf, strlen(buf)); }
 
 
 void first_task(void *arg)
 {
-  com_send("first task\n", 11);
+
+  int time = g_systicks /125;
+  int tid = task_getid();
+
+  zprintf("============================================================\n");
+  zprintf("Time: %ds => I am task %d, and I'll PAUSE myself. Waiting for others to RESUME me... \n",time, tid);
 
   // Stop the task.
   task_pause(0);
@@ -264,10 +276,22 @@ void first_task(void *arg)
 
 void second_task(void *arg)
 {
-  com_send("second task\n", 12);
+  static int x = 0;
 
+  int time = g_systicks /125;
+  int tid = task_getid();
+
+  zprintf("Time: %ds => I am task %d, and I'll go to SLEEP for one second.\n", time, tid);
+  if (x >= 3)
+    {
+      zprintf("Time: %ds => I am task %d, I'll RESUME task 1...\n", time, tid);
+      task_resume(1);
+      x = 0;
+    }
+
+  x++;
   //sleep
-  task_sleep(0, 1);
+  task_sleep(0, 125);
 }
 
 

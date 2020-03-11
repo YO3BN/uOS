@@ -75,14 +75,19 @@ int scheduler(kernel_event_t *event)
                break;
 
 
+             case TASK_STATE_RESUMED:
+               task->state = TASK_STATE_READY;
+               work_todo = 1;
+               break;
+
+
              case TASK_STATE_SLEEP:
                if (event->type == KERNEL_EVENT_IRQ_SYSTICK)
                  {
                    //TODO get g_systicks in critical section
-                   if (task->sleep_stamp + task->sleep_ticks >= g_systicks)
+                   if (task->wakeup_ticks == g_systicks)
                      {
-                       task->sleep_stamp = 0;
-                       task->sleep_ticks = 0;
+                       task->wakeup_ticks = 0;
                        task->state = TASK_STATE_READY;
                        work_todo = 1;
                      }
@@ -116,7 +121,7 @@ int scheduler(kernel_event_t *event)
   while (work_todo);
 
   /* Always return 0, since scheduler never generate
-   * any events, at least for the moment.
+   * events, at least for the moment.
    */
 
   return 0;
