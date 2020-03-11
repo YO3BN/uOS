@@ -29,11 +29,9 @@ typedef enum
 
 typedef struct
 {
-  kernel_event_type_t type;
-  unsigned int size;
-  void *data;
+  unsigned char type;
+  unsigned char data;
 } kernel_event_t;
-
 
 
 #endif /* SRC_KERNEL_INCLUDE_KERNEL_H_ */

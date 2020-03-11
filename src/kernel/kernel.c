@@ -6,131 +6,121 @@
  */
 
 #define NULL (void*)0
-#define CONFIG_EVENT_QUEUE_SIZE 32
-#define CONFIG_EVENT_QUEUES 2
-#define CONFIG_EVENT_MAX_SIZE sizeof(unsigned long)
-#define CONFIG
-
+#define CONFIG_MAX_EVENTS 128
 
 
 #include "kernel.h"
 
 
-typedef enum
+
+static volatile struct
 {
-  EVENT_QUEUE_INACTIVE = 0,
-  EVENT_QUEUE_ACTIVE,
-  EVENT_QUEUE_READY,
-} event_queue_status_t;
+  unsigned char read_idx;
+  unsigned char write_idx;
+  kernel_event_t event[CONFIG_MAX_EVENTS];
+} g_kevent_array;
 
 
-typedef volatile struct
+int kget_event_from_buffer(kernel_event_t *event)
 {
-  kernel_event_t queue[CONFIG_EVENT_QUEUE_SIZE];
-  event_queue_status_t status;
-  unsigned char data[CONFIG_EVENT_MAX_SIZE][CONFIG_EVENT_QUEUE_SIZE];
-} kernel_event_queue_t;
+  int cnt = 0;
 
-
-/* Create a buffer in BSS, in which data from events is stored. */
-static volatile kernel_event_queue_t g_event_queue[CONFIG_EVENT_QUEUES];
-
-
-
-
-int kevent_enqueue_critical(kernel_event_type_t type, void *data, int size)
-{
-  // TODO implement
-}
-
-
-kernel_event_t *kevent_dequeue_critical(kernel_event_t *queue)
-{
-  // TODO implement
-}
-
-
-int kevent_enqueue(kernel_event_type_t type, void *data, int size)
-{
-  // TODO implement
-  disable_interrupts();
-  kevent_enqueue_critical(type, data, size);
-  enable_interrupts();
-}
-
-
-int kevent_queue_isempty(kernel_event_t *queue)
-{
-  // TODO implement
-}
-
-
-kernel_event_t *kevent_dequeue(kernel_event_t *queue)
-{
-  // TODO implement
-  //disable_interrupts();??
-  kevent_dequeue_critical(queue);
-  //enable_interrupts();??
-  //empty? memset(queue, 0 ... ) : event
-}
-
-
-static kernel_event_t *kcheck_events_queue(void)
-{
-  // TODO implement
-  return 1;
-}
-
-
-static void kconsume_events(kernel_event_t *event_queue)
-{
-  int work_todo = 0;
-  kernel_event_t *event = NULL;
-
-  /* For all event in the queue retrieve one event
-   * and consume it through all sub-kernel modules.
-   */
-
-  while ((event = kevent_dequeue(event_queue)) != NULL)
+  if (event == NULL)
     {
-      /* Finish all possible work for this event. */
+      return 0;
+    }
 
-      do
+  /* Clear previous event. */
+
+  kmemset(event, 0, sizeof(kernel_event_t));
+
+  /* Enter critical and check for available event. */
+
+  disable_interrupts();
+
+  do
+    {
+      event->type = g_kevent_array.event[g_kevent_array.read_idx].type;
+      if (event->type != KERNEL_EVENT_NONE)
         {
-          work_todo |= io(event);
-          work_todo |= semaphore(event);
-          work_todo |= ipc(event);
-          work_todo |= scheduler(event);
+          event->data = g_kevent_array.event[g_kevent_array.read_idx].data;
+
+          /* Clear entry. */
+
+          g_kevent_array.event[g_kevent_array.read_idx].type = KERNEL_EVENT_NONE;
+          g_kevent_array.event[g_kevent_array.read_idx].data = 0;
         }
-      while (work_todo);
+
+      /* Advance read index. Reset it at the beginning of the array. */
+
+      g_kevent_array.read_idx++;
+      if (g_kevent_array.read_idx >= CONFIG_MAX_EVENTS)
+        {
+          g_kevent_array.read_idx = 0;
+        }
+
+      cnt++;
+    }
+  while (event->type == KERNEL_EVENT_NONE && cnt <= CONFIG_MAX_EVENTS);
+
+  /* Exit critical section. */
+
+  enable_interrupts();
+
+  if (event->type != KERNEL_EVENT_NONE)
+    {
+      return 1;
+    }
+
+  return 0;
+}
+
+
+void kput_event_in_buffer(unsigned char type, unsigned char data)
+{
+  g_kevent_array.event[g_kevent_array.write_idx].type = type;
+  g_kevent_array.event[g_kevent_array.write_idx].data = data;
+  g_kevent_array.write_idx++;
+
+  if (g_kevent_array.write_idx >= CONFIG_MAX_EVENTS)
+    {
+      g_kevent_array.write_idx = 0;
     }
 }
 
 
-static void kclear_events_queue(void)
+
+static void kconsume_events(kernel_event_t *event)
 {
-  kmemset(g_event_queue1, 0, sizeof(g_event_queue1));
-  kmemset(g_event_queue2, 0, sizeof(g_event_queue2));
+  int work_todo = 0;
+
+  /* Finish all possible work for this event. */
+
+  do
+    {
+      work_todo |= io(event);
+      work_todo |= semaphore(event);
+      work_todo |= ipc(event);
+      work_todo |= scheduler(event);
+    }
+  while (work_todo);
 }
 
 
 static void kernel_event_loop(void)
 {
-  /* Head of event queue to be consumed. */
-
-  kernel_event_t *events = NULL;
+  int ret = 0;
+  kernel_event_t event;
 
   /* Forever processing events. */
 
   for (;;)
     {
-      /* Check event queue. */
-
-      events = kcheck_events_queue();
+      ret = kget_event_from_buffer(&event);
 
       /* Check if there are events to consume. */
 
-      if (events)
+      if (ret)
         {
           /* Now, events are going to be consumed by other system parts,
            * (io waiting modules, semaphores, timers, scheduler, tasks, etc).
@@ -139,7 +129,7 @@ static void kernel_event_loop(void)
            * Expected to return before SysTick timer to tick.
            */
 
-          kconsume_events(events);
+          kconsume_events(&event);
 
           /* Here, all events in the queue were consumed.
            * It is time to reset the watch dog timer.
@@ -171,7 +161,7 @@ void kernel_init(void)
 
   /* TODO Initialize kernel globals. */
 
-  kclear_events_queue();
+  kmemset(g_kevent_array, 0, sizeof(g_kevent_array));
 
   /* Configure timers. */
 

@@ -15,7 +15,6 @@ extern volatile unsigned long g_systicks;
 int scheduler(kernel_event_t *event)
 {
   int idx   = 0;
-  int ret   = 0; //TODO ret true or false; true only when generate an event from here
   int work_todo  = 0;
 
   task_t *task = NULL;
@@ -116,7 +115,11 @@ int scheduler(kernel_event_t *event)
     }
   while (work_todo);
 
-  return ret;
+  /* Always return 0, since scheduler never generate
+   * any events, at least for the moment.
+   */
+
+  return 0;
 }
 
 

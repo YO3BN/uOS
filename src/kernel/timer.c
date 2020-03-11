@@ -16,6 +16,7 @@ void reset_watchdog(void)
 void start_systick(void)
 {
   // TODO implement
+  timer_start();
 }
 
 
@@ -28,7 +29,7 @@ void start_watchdog(void)
 void configure_systick(void)
 {
   g_systicks = 0;
-
+  tick_init();
   // TODO implement
 }
 
@@ -38,4 +39,7 @@ void configure_watchdog(void)
   // TODO implement
 }
 
-go_idle(){}
+go_idle()
+{
+  tick();
+}

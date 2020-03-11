@@ -122,20 +122,6 @@ uint16_t com_recv(void)
 
 
 
-enable_interrupts()
-{
-
-}
-
-
-disable_interrupts()
-{
-
-}
-
-
-
-
 
 
 
@@ -152,12 +138,27 @@ disable_interrupts()
 
 
 static volatile uint8_t tick_overflow;
-
+ extern volatile unsigned long g_systicks;
 
 ISR(TIMER1_OVF_vect)
 {
   tick_overflow = (uint8_t) 1;
+  g_systicks++;
 }
+
+
+void enable_interrupts()
+{
+sei();
+}
+
+
+void disable_interrupts()
+{
+cli();
+}
+
+
 
 
 void tick_init(void)
@@ -220,14 +221,14 @@ uint8_t tick(void)
 
   /* Save MCUCR, it will be restored back later */
   uint8_t mcucr = MCUCR;
-tick_overflow = (uint8_t) 0;
+//tick_overflow = (uint8_t) 0;
 
   set_sleep_mode(SLEEP_MODE_IDLE);
   sleep_enable();
   sei();
-  timer_start();
+//  timer_start();
   sleep_cpu();
-  timer_stop();
+//  timer_stop();
 
   /*
    * We don't need to use sleep_disable(),
@@ -266,7 +267,7 @@ void second_task(void *arg)
   com_send("second task\n", 12);
 
   //sleep
-  task_sleep(0, 125);
+  task_sleep(0, 1);
 }
 
 
