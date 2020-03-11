@@ -247,16 +247,6 @@ uint8_t tick(void)
 
 
 
-
-/*void zprintf(__VA_ARGS__, ...)
-{
-  char buf[255];
-  sprintf(buf, __VA_ARGS__);
-  com_send(buf, strlen(buf));
-}*/
-
-
-
 #define zprintf(...) { char buf[123]; sprintf(buf, __VA_ARGS__); com_send(buf, strlen(buf)); }
 
 
@@ -276,7 +266,7 @@ void first_task(void *arg)
 
 void second_task(void *arg)
 {
-  static int x = 0;
+  static int x = 1;
 
   int time = g_systicks /125;
   int tid = task_getid();
