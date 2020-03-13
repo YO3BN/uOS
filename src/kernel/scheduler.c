@@ -54,18 +54,12 @@ int scheduler(kernel_event_t *event)
 
   do
     {
-      /* Clear previous work. */
-
       work_todo = 0;
 
-      /* Go through all tasks. */
+      /* Go through all tasks and check their statuses. */
 
-      for (idx = 0; g_task_array[idx].state != TASK_STATE_INVALID &&
-            idx < MAX_TASKS; idx++)
+      while (task_getnext(&task))
         {
-
-          task = &g_task_array[idx];
-
           switch (task->state)
           {
             /* These statements are priority ordered. */
@@ -111,7 +105,6 @@ int scheduler(kernel_event_t *event)
                    //TODO if yes, then set it ready to run and set work to do.
                  }
                break;
-
 
 
              case TASK_STATE_RESUMED:

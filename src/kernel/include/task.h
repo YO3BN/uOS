@@ -7,9 +7,9 @@
 
 #ifndef TASK_H_
 #define TASK_H_
-
+#define NULL (void*)0
 #define MAX_TASKS 100
-
+#define CONFIG_TASK_MAX_NAME 10
 
 typedef enum
 {
@@ -27,6 +27,7 @@ typedef enum
 
 typedef struct
 {
+  char task_name[CONFIG_TASK_MAX_NAME + 1];
   void *arg;
   void *saved_data;
   void *entry_point;
@@ -42,14 +43,12 @@ typedef struct
 } task_t;
 
 
-extern task_t g_task_array[MAX_TASKS];
 extern task_t *g_running_task;
 
 
 int task_resume(int tid);
 int task_pause(int tid);
 int task_destroy(int tid);
-int task_list(void);
 
 
 unsigned int task_getid(void);

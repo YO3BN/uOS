@@ -255,9 +255,10 @@ void first_task(void *arg)
 
   int time = g_systicks /125;
   int tid = task_getid();
+  char *const str = task_getname(0);
 
   zprintf("============================================================\n");
-  zprintf("Time: %ds => I am task %d, and I'll PAUSE myself. Waiting for others to RESUME me... \n",time, tid);
+  zprintf("Time: %ds => I am task %d (%s), and I'll PAUSE myself. Waiting for others to RESUME me... \n",time, tid, str);
 
   // Stop the task.
   task_pause(0);
@@ -266,12 +267,13 @@ void first_task(void *arg)
 
 void second_task(void *arg)
 {
-  static int x = 1;
+  static int x = 0;
 
   int time = g_systicks /125;
   int tid = task_getid();
+  char * const str = task_getname(0);
 
-  zprintf("Time: %ds => I am task %d, and I'll go to SLEEP for one second.\n", time, tid);
+  zprintf("Time: %ds => I am task %d, (%s) and I'll go to SLEEP for one second.\n", time, tid, str);
   if (x >= 3)
     {
       zprintf("Time: %ds => I am task %d, I'll RESUME task 1...\n", time, tid);
@@ -287,14 +289,10 @@ void second_task(void *arg)
 
 void main(void)
 {
-  //TODO init stuff();
-  tick_init();
-
-
   kernel_init();
 
-  task_create(first_task, NULL);
-  task_create(second_task, NULL);
+  task_create("first_task", first_task, NULL);
+  task_create("second_task", second_task, NULL);
 
   kernel_start();
 }

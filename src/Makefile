@@ -10,7 +10,7 @@ BIN_PATH := ../bin
 OBJ_PATH := ../bin
 SRC_PATH := kernel
 INC_PATH := $(SRC_PATH)/include
-DBG_PATH := debug
+DBG_PATH := ./
 
 # compile marcros
 TARGET_NAME := kernel.a
@@ -41,7 +41,7 @@ $(OBJ_PATH)/%.o: $(SRC_PATH)/%.c*
 	$(CC) $(CCOBJFLAG) -I$(INC_PATH) -o $@ $<
 
 $(DBG_PATH)/%.o: $(SRC_PATH)/%.c*
-	$(CC) $(CCOBJFLAG) $(DBGFLAG) -o $@ $<
+	$(CC) $(CCOBJFLAG) $(DBGFLAG) -I$(INC_PATH) -o $@ $<
 
 $(TARGET_DEBUG): $(OBJ_DEBUG)
 	$(CC) $(CCFLAG) $(DBGFLAG) $? -o $@

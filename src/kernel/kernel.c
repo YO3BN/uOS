@@ -89,7 +89,7 @@ void kput_event_in_buffer(unsigned char type, unsigned char data)
  *
  ****************************************************************************/
 
-int kget_event_from_buffer(kernel_event_t *event)
+static int kget_event_from_buffer(kernel_event_t *event)
 {
   int cnt = 0;
 
