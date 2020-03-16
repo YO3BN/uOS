@@ -56,7 +56,7 @@ int scheduler(kernel_event_t *event)
     {
       work_todo = 0;
 
-      /* Go through all tasks and check their statuses. */
+      /* Go through all tasks and take decisions based on their statuses. */
 
       while (task_getnext(&task))
         {

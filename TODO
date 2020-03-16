@@ -12,6 +12,7 @@
 - task timer - waiting timer - have to implement semapahores before.
 - task state IPC_WAIT?
 - task yeld ??
+- tickless !!
 - code
 - debug
 - etc

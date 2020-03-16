@@ -8,7 +8,7 @@
 #ifndef TASK_H_
 #define TASK_H_
 #define NULL (void*)0
-#define MAX_TASKS 100
+#define MAX_TASKS 10
 #define CONFIG_TASK_MAX_NAME 10
 
 typedef enum

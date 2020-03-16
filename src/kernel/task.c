@@ -8,12 +8,53 @@
 extern volatile unsigned long g_systicks;
 #define MAX_TASKS 100
 
+
+/****************************************************************************
+ * Included Files.
+ ****************************************************************************/
+
 #include "task.h"
 
 
+/****************************************************************************
+ * Public globals.
+ ****************************************************************************/
+
 task_t *g_running_task;
+
+
+/****************************************************************************
+ * Private globals.
+ ****************************************************************************/
+
 static task_t g_task_array[MAX_TASKS];
 
+
+/****************************************************************************
+ * Public functions.
+ ****************************************************************************/
+
+
+/****************************************************************************
+ * Name: task_create
+ *
+ * Description:
+ *    Create a task.
+ *    Configure and insert it into kernel's task list/array.
+ *
+ * Input Parameters:
+ *    task_name - Short name of task. See, CONFIG_TASK_MAX_NAME.
+ *    entry_point - Pointer to task's main function.
+ *    arg - Given argument for the task.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - For errors.
+ *
+ * Assumptions:
+ *    Task name and entry point are mandatory.
+ *
+ ****************************************************************************/
 
 int task_create(const char *task_name, void (*entry_point)(void*), void *arg)
 {
@@ -48,6 +89,28 @@ int task_create(const char *task_name, void (*entry_point)(void*), void *arg)
   return 1;
 }
 
+
+/****************************************************************************
+ * Name: task_getnext
+ *
+ * Description:
+ *    Get next following task from the given one.
+ *
+ * Input/Output Parameters:
+ *    task - As an INPUT, it takes address to a pointer pointing to an initial
+ *            task.
+ *         - As an OUTPUT, it modifies the given pointer to point to the
+ *            next task following the initial one.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - For errors.
+ *
+ * Assumptions:
+ *    If the given pointer at address is NULL, then the address of the first
+ *    task in the list/array is returned.
+ *
+ ****************************************************************************/
 
 int task_getnext(task_t **task)
 {
@@ -87,6 +150,23 @@ int task_getnext(task_t **task)
 }
 
 
+/****************************************************************************
+ * Name: task_getby_id
+ *
+ * Description:
+ *    Get a pointer to a task specifying the task id.
+ *
+ * Input Parameters:
+ *    tid - Given task ID.
+ *
+ * Returned Value:
+ *    Valid pointer to task - For success.
+ *    NULL - For errors.
+ *
+ * Assumptions:
+ *
+ ****************************************************************************/
+
 task_t *task_getby_id(int tid)
 {
   task_t *task = NULL;
@@ -108,6 +188,23 @@ task_t *task_getby_id(int tid)
 }
 
 
+/****************************************************************************
+ * Name: task_getname
+ *
+ * Description:
+ *    Get a pointer to a task name specifying the task id.
+ *
+ * Input Parameters:
+ *    tid - Given task ID.
+ *
+ * Returned Value:
+ *    Valid pointer to task name.
+ *    NULL - For errors.
+ *
+ * Assumptions:
+ *
+ ****************************************************************************/
+
 char *const task_getname(int tid)
 {
   task_t *task = NULL;
@@ -127,6 +224,23 @@ char *const task_getname(int tid)
   return task->task_name;
 }
 
+
+/****************************************************************************
+ * Name: task_resume
+ *
+ * Description:
+ *    Resume a task specifying the task id.
+ *
+ * Input Parameters:
+ *    tid - Given task ID.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - For errors.
+ *
+ * Assumptions:
+ *
+ ****************************************************************************/
 
 int task_resume(int tid)
 {
@@ -150,6 +264,23 @@ int task_resume(int tid)
 }
 
 
+/****************************************************************************
+ * Name: task_pause
+ *
+ * Description:
+ *    Pause a task specifying the task id.
+ *
+ * Input Parameters:
+ *    tid - Given task ID.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - For errors.
+ *
+ * Assumptions:
+ *
+ ****************************************************************************/
+
 int task_pause(int tid)
 {
   task_t *task = NULL;
@@ -171,6 +302,23 @@ int task_pause(int tid)
   return 0;
 }
 
+
+/****************************************************************************
+ * Name: task_destroy
+ *
+ * Description:
+ *    Destroy a task specifying the task id.
+ *
+ * Input Parameters:
+ *    tid - Given task ID.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - For errors.
+ *
+ * Assumptions:
+ *
+ ****************************************************************************/
 
 int task_destroy(int tid)
 {
@@ -194,6 +342,24 @@ int task_destroy(int tid)
 }
 
 
+/****************************************************************************
+ * Name: task_sleep
+ *
+ * Description:
+ *    Put a task in sleep mode specifying the task id.
+ *
+ * Input Parameters:
+ *    tid - Given task ID.
+ *    ticks - Number of ticks to sleep.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - For errors.
+ *
+ * Assumptions:
+ *
+ ****************************************************************************/
+
 int task_sleep(unsigned int tid, const unsigned int ticks)
 {
   task_t *task;
@@ -215,6 +381,23 @@ int task_sleep(unsigned int tid, const unsigned int ticks)
   return 0;
 }
 
+
+/****************************************************************************
+ * Name: task_getid
+ *
+ * Description:
+ *    Get the task ID of the current running task (the caller function).
+ *
+ * Input Parameters:
+ *    none
+ *
+ * Returned Value:
+ *    Task ID.
+ *
+ * Assumptions:
+ *    Called only from a valid running task.
+ *
+ ****************************************************************************/
 
 inline unsigned int task_getid(void)
 {
