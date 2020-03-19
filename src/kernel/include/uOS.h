@@ -1,39 +1,99 @@
 /*
- * task.c
+ * uOS.h
  *
- *  Created on: Mar 4, 2020
+ *  Created on: Mar 19, 2020
  *      Author: yo3bn
  */
 
-
-/****************************************************************************
- * Included Files.
- ****************************************************************************/
-
-#include "config.h"
-#include "private.h"
-#include "kernel.h"
-#include "task.h"
-#include "timers.h"
-#include "klib.h"
-
-/****************************************************************************
- * Public globals.
- ****************************************************************************/
-
-task_t *g_running_task;
+#ifndef SRC_KERNEL_INCLUDE_UOS_H_
+#define SRC_KERNEL_INCLUDE_UOS_H_
 
 
 /****************************************************************************
- * Private globals.
+ * Public prototypes.
  ****************************************************************************/
 
-static task_t g_task_array[CONFIG_MAX_TASKS];
+/****************************************************************************
+ * Name: kput_event_in_buffer
+ *
+ * Description:
+ *    Insert new event in the circular buffer.
+ *
+ * Input Parameters:
+ *    type - Event type.
+ *    data - Optional data.
+ *
+ * Returned Value:
+ *    none
+ *
+ * Assumptions:
+ *    This should be called only from ISR context.
+ *
+ ****************************************************************************/
+
+void kput_event_in_buffer(unsigned char type, unsigned char data);
 
 
 /****************************************************************************
- * Public functions.
+ * Name: kput_event_in_buffer_critical
+ *
+ * Description:
+ *    Insert new event in the circular buffer (critical).
+ *
+ * Input Parameters:
+ *    type - Event type.
+ *    data - Optional data.
+ *
+ * Returned Value:
+ *    none
+ *
+ * Assumptions:
+ *    This should NOT be called from ISR context.
+ *
  ****************************************************************************/
+
+void kput_event_in_buffer_critical(unsigned char type, unsigned char data);
+
+
+/****************************************************************************
+ * Name: kernel_init
+ *
+ * Description:
+ *    Kernel initialization.
+ *
+ * Input Parameters:
+ *    None
+ *
+ * Returned Value:
+ *    None
+ *
+ * Assumptions:
+ *    This should be called at the beginning of main();
+ *
+ ****************************************************************************/
+
+void kernel_init(void);
+
+
+/****************************************************************************
+ * Name: kernel_start
+ *
+ * Description:
+ *    Run the kernel.
+ *
+ * Input Parameters:
+ *    None
+ *
+ * Returned Value:
+ *    None
+ *
+ * Assumptions:
+ *    This function will never return.
+ *    It should be called at the end of main();
+ *
+ ****************************************************************************/
+
+void kernel_start(void);
 
 
 /****************************************************************************
@@ -57,38 +117,7 @@ static task_t g_task_array[CONFIG_MAX_TASKS];
  *
  ****************************************************************************/
 
-int task_create(const char *task_name, void (*entry_point)(void*), void *arg)
-{
-  int i;
-
-  if (!entry_point || !task_name)
-    {
-      return 0;
-    }
-
-  /* Find the first free array element. */
-
-  for (i = 0; i < CONFIG_MAX_TASKS &&
-      g_task_array[i].state != TASK_STATE_INVALID &&
-      g_task_array[i].state != TASK_STATE_EXITED; i++);
-
-  /* Check if array is full. */
-
-  if (i >= CONFIG_MAX_TASKS)
-    {
-      return 0;
-    }
-
-  /* Create/copy task attributes. */
-
-  g_task_array[i].idx = i;
-  g_task_array[i].tid = i + 1; // TODO FIXME overflow here
-  g_task_array[i].state = TASK_STATE_READY;
-  g_task_array[i].entry_point = entry_point;
-  kstrncpy(g_task_array[i].task_name, task_name, CONFIG_TASK_MAX_NAME + 1);
-
-  return 1;
-}
+int task_create(const char *task_name, void (*entry_point)(void*), void *arg);
 
 
 /****************************************************************************
@@ -113,42 +142,7 @@ int task_create(const char *task_name, void (*entry_point)(void*), void *arg)
  *
  ****************************************************************************/
 
-int task_getnext(task_t **task)
-{
-  int idx;
-
-  if (!task)
-    {
-      return 0;
-    }
-
-  /* If the *task is NULL, then go for the first task. TODO recomment this */
-
-  if (*task == NULL)
-    {
-      idx = 0;
-    }
-  else
-    {
-      idx = (*task)->idx + 1;
-    }
-
-  /* Check to not exceed array boundary. */
-
-  if (idx >= CONFIG_MAX_TASKS)
-    {
-      return 0;
-    }
-
-  if (g_task_array[idx].state == TASK_STATE_INVALID)
-    {
-      return 0;
-    }
-
-  *task = &g_task_array[idx];
-
-  return 1;
-}
+int task_getnext(task_t **task);
 
 
 /****************************************************************************
@@ -168,25 +162,7 @@ int task_getnext(task_t **task)
  *
  ****************************************************************************/
 
-task_t *task_getby_id(int tid)
-{
-  task_t *task = NULL;
-
-  if (!tid)
-    {
-      return NULL;
-    }
-
-  while (task_getnext(&task))
-    {
-      if (task->tid == tid)
-        {
-          break;
-        }
-    }
-
-  return task;
-}
+task_t *task_getby_id(int tid);
 
 
 /****************************************************************************
@@ -206,24 +182,7 @@ task_t *task_getby_id(int tid)
  *
  ****************************************************************************/
 
-char *const task_getname(int tid)
-{
-  task_t *task = NULL;
-
-  if (!tid)
-    {
-      tid = task_getid();
-    }
-
-  task = task_getby_id(tid);
-
-  if (!task)
-    {
-      return NULL;
-    }
-
-  return task->task_name;
-}
+char *const task_getname(int tid);
 
 
 /****************************************************************************
@@ -243,26 +202,7 @@ char *const task_getname(int tid)
  *
  ****************************************************************************/
 
-int task_resume(int tid)
-{
-  task_t *task = NULL;
-
-  if (!tid)
-    {
-      tid = task_getid();
-    }
-
-  task = task_getby_id(tid);
-
-  if (task)
-    {
-      task->state = task->last_state;
-      task->state = TASK_STATE_RESUMED;
-      return 1;
-    }
-
-  return 0;
-}
+int task_resume(int tid);
 
 
 /****************************************************************************
@@ -282,26 +222,7 @@ int task_resume(int tid)
  *
  ****************************************************************************/
 
-int task_pause(int tid)
-{
-  task_t *task = NULL;
-
-  if (!tid)
-    {
-      tid = task_getid();
-    }
-
-  task = task_getby_id(tid);
-
-  if (task)
-    {
-      task->last_state = task->state;
-      task->state = TASK_STATE_PAUSED;
-      return 1;
-    }
-
-  return 0;
-}
+int task_pause(int tid);
 
 
 /****************************************************************************
@@ -321,26 +242,7 @@ int task_pause(int tid)
  *
  ****************************************************************************/
 
-int task_destroy(int tid)
-{
-  task_t *task;
-
-  if (!tid)
-    {
-      tid = task_getid();
-    }
-
-  task = task_getby_id(tid);
-
-  if (task)
-    {
-      //TODO implement
-      task->state = TASK_STATE_EXITED;
-      return 1;
-    }
-
-  return 0;
-}
+int task_destroy(int tid);
 
 
 /****************************************************************************
@@ -361,26 +263,7 @@ int task_destroy(int tid)
  *
  ****************************************************************************/
 
-int task_sleep(unsigned int tid, const unsigned int ticks)
-{
-  task_t *task;
-
-  if (!tid)
-    {
-      tid = task_getid();
-    }
-
-  task = task_getby_id(tid);
-
-  if (task)
-    {
-      task->state = TASK_STATE_SLEEP;
-      task->wakeup_ticks = ticks + g_systicks; // TODO this in critical section
-      return 1;
-    }
-
-  return 0;
-}
+int task_sleep(unsigned int tid, const unsigned int ticks);
 
 
 /****************************************************************************
@@ -400,9 +283,7 @@ int task_sleep(unsigned int tid, const unsigned int ticks)
  *
  ****************************************************************************/
 
-inline unsigned int task_getid(void)
-{
-  return g_running_task->tid;
-}
+inline unsigned int task_getid(void);
 
 
+#endif /* SRC_KERNEL_INCLUDE_UOS_H_ */

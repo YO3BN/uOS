@@ -39,7 +39,7 @@ void configure_watchdog(void)
   // TODO implement
 }
 
-go_idle()
+void go_idle(void)
 {
   tick();
 }

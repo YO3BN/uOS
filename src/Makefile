@@ -13,7 +13,7 @@ INC_PATH := $(SRC_PATH)/include
 DBG_PATH := ./
 
 # compile marcros
-TARGET_NAME := kernel.a
+TARGET_NAME := uOS.a
 TARGET := $(BIN_PATH)/$(TARGET_NAME)
 TARGET_DEBUG := $(DBG_PATH)/$(TARGET_NAME)
 

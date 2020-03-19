@@ -7,7 +7,7 @@
 - implement archint type (fast integer)
 - think about io,ipc,sem,sched be separate modules dynamically inserted in kconsume_events??
 - decide if have to use separate work queue for kernel modules
-- some kernel work events cannot be conumed immediately? they have to remain stored in queue??
+- some kernel work events cannot be consumed immediately? they have to remain stored in queue??
 - statistics idle time, load, uptime etc?
 - task timer - waiting timer - have to implement semapahores before.
 - task state IPC_WAIT?

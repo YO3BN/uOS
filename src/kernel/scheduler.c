@@ -5,17 +5,17 @@
  *      Author: yo3bn
  */
 
-#define NULL (void*)0
-extern volatile unsigned long g_systicks;
-
 
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
-#include "task.h"
+#include "config.h"
+#include "private.h"
 #include "kernel.h"
-
+#include "task.h"
+#include "timers.h"
+#include "scheduler.h"
 
 /****************************************************************************
  * Name: scheduler

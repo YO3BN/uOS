@@ -5,15 +5,18 @@
  *      Author: yo3bn
  */
 
-#define NULL (void*)0
-#define CONFIG_MAX_EVENTS 128
-
 
 /****************************************************************************
  * Included Files.
  ****************************************************************************/
 
+#include "config.h"
+#include "private.h"
 #include "kernel.h"
+#include "timers.h"
+#include "scheduler.h"
+#include "klib.h"
+
 
 /****************************************************************************
  * Private data.
@@ -39,36 +42,6 @@ static volatile struct
 /****************************************************************************
  * Private functions.
  ****************************************************************************/
-
-/****************************************************************************
- * Name: kput_event_in_buffer
- *
- * Description:
- *    Insert new event in the circular buffer.
- *
- * Input Parameters:
- *    type - Event type.
- *    data - Optional data.
- *
- * Returned Value:
- *    none
- *
- * Assumptions:
- *    This should be called only from ISR context.
- *
- ****************************************************************************/
-
-void kput_event_in_buffer(unsigned char type, unsigned char data)
-{
-  g_kevent_buffer.event[g_kevent_buffer.write_idx].type = type;
-  g_kevent_buffer.event[g_kevent_buffer.write_idx].data = data;
-  g_kevent_buffer.write_idx++;
-
-  if (g_kevent_buffer.write_idx >= CONFIG_MAX_EVENTS)
-    {
-      g_kevent_buffer.write_idx = 0;
-    }
-}
 
 
 /****************************************************************************
@@ -251,22 +224,91 @@ static void kernel_event_loop(void)
  ****************************************************************************/
 
 /****************************************************************************
+ * Name: kput_event_in_buffer
+ *
+ * Description:
+ *    Insert new event in the circular buffer.
+ *
+ * Input Parameters:
+ *    type - Event type.
+ *    data - Optional data.
+ *
+ * Returned Value:
+ *    none
+ *
+ * Assumptions:
+ *    This should be called only from ISR context.
+ *
+ ****************************************************************************/
+
+void kput_event_in_buffer(unsigned char type, unsigned char data)
+{
+  g_kevent_buffer.event[g_kevent_buffer.write_idx].type = type;
+  g_kevent_buffer.event[g_kevent_buffer.write_idx].data = data;
+  g_kevent_buffer.write_idx++;
+
+  if (g_kevent_buffer.write_idx >= CONFIG_MAX_EVENTS)
+    {
+      g_kevent_buffer.write_idx = 0;
+    }
+}
+
+
+/****************************************************************************
+ * Name: kput_event_in_buffer_critical
+ *
+ * Description:
+ *    Insert new event in the circular buffer (critical).
+ *
+ * Input Parameters:
+ *    type - Event type.
+ *    data - Optional data.
+ *
+ * Returned Value:
+ *    none
+ *
+ * Assumptions:
+ *    This should NOT be called from ISR context.
+ *
+ ****************************************************************************/
+
+void kput_event_in_buffer_critical(unsigned char type, unsigned char data)
+{
+  disable_interrupts();
+
+  g_kevent_buffer.event[g_kevent_buffer.write_idx].type = type;
+  g_kevent_buffer.event[g_kevent_buffer.write_idx].data = data;
+  g_kevent_buffer.write_idx++;
+
+  if (g_kevent_buffer.write_idx >= CONFIG_MAX_EVENTS)
+    {
+      g_kevent_buffer.write_idx = 0;
+    }
+
+  enable_interrups();
+}
+
+
+/****************************************************************************
  * Name: kernel_init
  *
  * Description:
- *
+ *    Kernel initialization.
  *
  * Input Parameters:
+ *    None
  *
  * Returned Value:
+ *    None
  *
  * Assumptions:
+ *    This should be called at the beginning of main();
  *
  ****************************************************************************/
 
 void kernel_init(void)
 {
-  kmemset(g_kevent_buffer, 0, sizeof(g_kevent_buffer));
+  kmemset(&g_kevent_buffer, 0, sizeof(g_kevent_buffer));
 
   /* Configure timers. */
 
@@ -279,13 +321,17 @@ void kernel_init(void)
  * Name: kernel_start
  *
  * Description:
- *
+ *    Run the kernel.
  *
  * Input Parameters:
+ *    None
  *
  * Returned Value:
+ *    None
  *
  * Assumptions:
+ *    This function will never return.
+ *    It should be called at the end of main();
  *
  ****************************************************************************/
 
