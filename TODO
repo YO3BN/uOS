@@ -1,4 +1,3 @@
-- move demo and apps to src
 - make overall build system
 - produce / consume systicks, start failsafe context-switch kernel superviser
 - maybe in future remove demo and leave only apps
