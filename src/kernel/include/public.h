@@ -1,12 +1,12 @@
 /*
- * uOS.h
+ * public.h
  *
  *  Created on: Mar 19, 2020
  *      Author: yo3bn
  */
 
-#ifndef SRC_KERNEL_INCLUDE_UOS_H_
-#define SRC_KERNEL_INCLUDE_UOS_H_
+#ifndef SRC_KERNEL_INCLUDE_PUBLIC_H_
+#define SRC_KERNEL_INCLUDE_PUBLIC_H_
 
 
 /****************************************************************************
@@ -286,4 +286,4 @@ int task_sleep(unsigned int tid, const unsigned int ticks);
 inline unsigned int task_getid(void);
 
 
-#endif /* SRC_KERNEL_INCLUDE_UOS_H_ */
+#endif /* SRC_KERNEL_INCLUDE_PUBLIC_H_ */

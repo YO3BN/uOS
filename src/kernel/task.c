@@ -11,11 +11,13 @@
  ****************************************************************************/
 
 #include "config.h"
+#include "cpu.h"
 #include "private.h"
 #include "kernel.h"
 #include "task.h"
 #include "timers.h"
 #include "klib.h"
+
 
 /****************************************************************************
  * Public globals.

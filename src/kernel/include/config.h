@@ -8,9 +8,21 @@
 #ifndef SRC_KERNEL_INCLUDE_CONFIG_H_
 #define SRC_KERNEL_INCLUDE_CONFIG_H_
 
+/* TODO */
+
 #define CONFIG_MAX_EVENTS     128
+
+/* TODO */
+
 #define CONFIG_MAX_TASKS      10
+
+/* TODO */
+
 #define CONFIG_TASK_MAX_NAME  10
+
+/* TODO */
+
+#define CONFIG_ARCH_ID        ATMEGA1284
 
 
 #endif /* SRC_KERNEL_INCLUDE_CONFIG_H_ */

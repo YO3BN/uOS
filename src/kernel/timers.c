@@ -5,28 +5,31 @@
  *      Author: yo3bn
  */
 
+#include "arch.h"
+
+
 volatile unsigned long g_systicks;  //todo maybe long long? or other approach!
 
-void reset_watchdog(void)
+inline void reset_watchdog(void)
 {
-  // TODO implement
+  arch_reset_watchdog();
 }
 
 
-void start_systick(void)
+inline void start_systick(void)
 {
   // TODO implement
   timer_start();
 }
 
 
-void start_watchdog(void)
+inline void start_watchdog(void)
 {
-  // TODO implement
+  arch_start_watchdog();
 }
 
 
-void configure_systick(void)
+inline void configure_systick(void)
 {
   g_systicks = 0;
   tick_init();
@@ -34,12 +37,7 @@ void configure_systick(void)
 }
 
 
-void configure_watchdog(void)
+inline void configure_watchdog(void)
 {
-  // TODO implement
-}
-
-void go_idle(void)
-{
-  tick();
+  arch_configure_watchdog();
 }

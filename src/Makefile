@@ -1,13 +1,19 @@
 # tool marcros
-CC := avr-gcc -mmcu=atmega1284 -g -Og
+
+ARCH_ID := atmega1284
+ARCH_CPU := avr8
+ARCH_CC_FLAGS := -mmcu=$(ARCH_ID)
+ARCH_INCLUDE := arch/$(ARCH_CPU)/$(ARCH_ID)
+
+CC := avr-gcc  $(ARCH_CC_FLAGS)
 AR := avr-ar
-CCFLAG :=
-DBGFLAG := -g
-CCOBJFLAG := $(CCFLAG) -c
+CCFLAG := -Os
+DBGFLAG := -g3 -Og
+CCOBJFLAG := $(CCFLAG) -I$(ARCH_INCLUDE) -c
 
 # path marcros
 BIN_PATH := ../bin
-OBJ_PATH := ../bin
+OBJ_PATH := ../obj
 SRC_PATH := kernel
 INC_PATH := $(SRC_PATH)/include
 DBG_PATH := ./
@@ -35,7 +41,7 @@ default: all
 # non-phony targets
 $(TARGET): $(OBJ)
 #	$(CC) $(CCFLAG) -o $@ $?
-	$(AR) rcs $(BIN_PATH)/$(TARGET_NAME) $(BIN_PATH)/*.o
+	$(AR) rcs $(BIN_PATH)/$(TARGET_NAME) $(OBJ_PATH)/*.o
 
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.c*
 	$(CC) $(CCOBJFLAG) -I$(INC_PATH) -o $@ $<

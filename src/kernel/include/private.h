@@ -9,10 +9,10 @@
 #define SRC_KERNEL_PRIVATE_H_
 
 
-#ifndef NULL
-#  define NULL ((void*)0)
-#endif
+/* Include architecture dependent headers.
+ * Header path handled by makefile.
+ */
 
-
+#include "arch.h"
 
 #endif /* SRC_KERNEL_PRIVATE_H_ */

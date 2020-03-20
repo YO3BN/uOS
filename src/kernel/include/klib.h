@@ -9,6 +9,11 @@
 #define SRC_KERNEL_INCLUDE_KLIB_H_
 
 
+#ifndef NULL
+#  define NULL ((void*)0)
+#endif
+
+
 void kmemset(void *ptr, unsigned char byte, unsigned int size);
 void kmemcpy(void *dst, void *src, unsigned int size);
 unsigned int kstrlen(const char *str);

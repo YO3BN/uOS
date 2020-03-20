@@ -13,6 +13,7 @@
 #include "config.h"
 #include "private.h"
 #include "kernel.h"
+#include "klib.h"
 #include "task.h"
 #include "timers.h"
 #include "scheduler.h"
