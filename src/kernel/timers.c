@@ -8,36 +8,36 @@
 #include "arch.h"
 
 
-volatile unsigned long g_systicks;  //todo maybe long long? or other approach!
+//TODO maybe long long? or other approach!
+//TODO make this static and use helper functions to set, reset, etc.
+volatile unsigned long g_systicks;
 
-inline void reset_watchdog(void)
+
+void reset_watchdog(void)
 {
   arch_reset_watchdog();
 }
 
 
-inline void start_systick(void)
+void start_systick(void)
 {
-  // TODO implement
-  timer_start();
+  arch_start_systick();
 }
 
 
-inline void start_watchdog(void)
+void start_watchdog(void)
 {
   arch_start_watchdog();
 }
 
 
-inline void configure_systick(void)
+void configure_systick(void)
 {
-  g_systicks = 0;
-  tick_init();
-  // TODO implement
+  arch_configure_systick();
 }
 
 
-inline void configure_watchdog(void)
+void configure_watchdog(void)
 {
   arch_configure_watchdog();
 }

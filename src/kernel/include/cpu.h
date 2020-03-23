@@ -11,7 +11,7 @@
 
 void go_idle(void);
 void disable_interrupts(void);
-void enable_interrups(void);
+void enable_interrupts(void);
 
 
 #endif /* SRC_KERNEL_INCLUDE_CPU_H_ */

@@ -6,20 +6,23 @@
  */
 
 
-inline void go_idle(void)
+#include "arch.h"
+#include "cpu.h"
+
+
+void enable_interrupts(void)
 {
-  //TODO implement arch_go_idle();
-  tick();
+  arch_enable_interrupts();
 }
 
-inline void disable_interrupts(void)
+
+void disable_interrupts(void)
 {
   arch_disable_interrupts();
 }
 
 
-inline void enable_interrups(void)
+void go_idle(void)
 {
-  arch_enable_interrupts();
+  arch_go_idle();
 }
-

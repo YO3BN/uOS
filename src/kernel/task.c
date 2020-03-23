@@ -11,6 +11,7 @@
  ****************************************************************************/
 
 #include "config.h"
+#include "arch.h"
 #include "cpu.h"
 #include "private.h"
 #include "kernel.h"
@@ -139,11 +140,13 @@ int task_getnext(task_t **task)
 
   if (idx >= CONFIG_MAX_TASKS)
     {
+      *task = NULL;
       return 0;
     }
 
   if (g_task_array[idx].state == TASK_STATE_INVALID)
     {
+      *task = NULL;
       return 0;
     }
 
@@ -258,7 +261,6 @@ int task_resume(int tid)
 
   if (task)
     {
-      task->state = task->last_state;
       task->state = TASK_STATE_RESUMED;
       return 1;
     }
@@ -402,8 +404,13 @@ int task_sleep(unsigned int tid, const unsigned int ticks)
  *
  ****************************************************************************/
 
-inline unsigned int task_getid(void)
+unsigned int task_getid(void)
 {
+  if (!g_running_task)
+    {
+      return 0;
+    }
+
   return g_running_task->tid;
 }
 

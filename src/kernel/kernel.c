@@ -11,6 +11,7 @@
  ****************************************************************************/
 
 #include "config.h"
+#include "arch.h"
 #include "cpu.h"
 #include "private.h"
 #include "kernel.h"
@@ -146,9 +147,8 @@ static void kconsume_events(kernel_event_t *event)
 
   do
     {
-      work_todo |= io(event);
-      work_todo |= semaphore(event);
-      work_todo |= ipc(event);
+      /* Add other kernel submodules here (io, sem, etc.). */
+
       work_todo |= scheduler(event);
     }
   while (work_todo);
@@ -287,7 +287,7 @@ void kput_event_in_buffer_critical(unsigned char type, unsigned char data)
       g_kevent_buffer.write_idx = 0;
     }
 
-  enable_interrups();
+  enable_interrupts();
 }
 
 
@@ -310,6 +310,7 @@ void kput_event_in_buffer_critical(unsigned char type, unsigned char data)
 
 void kernel_init(void)
 {
+  g_systicks = 0;
   kmemset(&g_kevent_buffer, 0, sizeof(g_kevent_buffer));
 
   /* Configure timers. */
