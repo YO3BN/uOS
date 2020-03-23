@@ -16,6 +16,7 @@
 - write about tasks in docs/ how they are ran, fsm, exit/return.
 - task yeld ??
 - tickless !!
+- remove exited tasks
 - code
 - debug
 - etc

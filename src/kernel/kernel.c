@@ -311,7 +311,7 @@ void kput_event_in_buffer_critical(unsigned char type, unsigned char data)
 void kernel_init(void)
 {
   g_systicks = 0;
-  kmemset(&g_kevent_buffer, 0, sizeof(g_kevent_buffer));
+  kmemset((void*) &g_kevent_buffer, 0, sizeof(g_kevent_buffer));
 
   /* Configure timers. */
 

@@ -17,7 +17,7 @@
 void kmemset(void *ptr, unsigned char byte, unsigned int size);
 void kmemcpy(void *dst, void *src, unsigned int size);
 unsigned int kstrlen(const char *str);
-void kstrncpy(char *dst, char *src, unsigned int size);
+void kstrncpy(char *dst, const char *src, unsigned int size);
 
 
 #endif /* SRC_KERNEL_INCLUDE_KLIB_H_ */

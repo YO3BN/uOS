@@ -44,7 +44,6 @@
 
 int scheduler(kernel_event_t *event)
 {
-  int idx   = 0;
   int work_todo  = 0;
 
   task_t *task = NULL;
@@ -150,7 +149,7 @@ int scheduler(kernel_event_t *event)
         } /* while (task_getnext(&task)) */
 
       /* Reached end of task list. Set task to NULL in order to get
-       * first task at next iteration if still more wore work to do.
+       * first task at next iteration if still more work to do.
        */
 
       task = NULL;

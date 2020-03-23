@@ -42,7 +42,7 @@ void kmemcpy(void *dst, void *src, unsigned int size)
 
 unsigned int kstrlen(const char *str)
 {
-  char *orig;
+  const char *orig;
 
   if (!str)
     {
@@ -56,7 +56,7 @@ unsigned int kstrlen(const char *str)
 }
 
 
-void kstrncpy(char *dst, char *src, unsigned int size)
+void kstrncpy(char *dst, const char *src, unsigned int size)
 {
   unsigned int i = 0;
   int len;
