@@ -16,6 +16,8 @@
 - write about tasks in docs/ how they are ran, fsm, exit/return.
 - task yeld ??
 - tickless !!
+- implement task_getby_name()
+- implement strcmp()
 - remove exited tasks
 - code
 - debug

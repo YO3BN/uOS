@@ -1,8 +1,7 @@
 
 all:
 	avr-gcc -pipe -gstabs -static -O2 -mmcu=atmega1284 -DF_CPU=8000000 \
-	-fdata-sections -ffunction-sections -Wl,--gc-sections,-u, \
-	-Wno-implicit-function-declaration \
+	-fdata-sections -ffunction-sections -Wall -Wl,--gc-sections,-u, \
 	-I../../kernel/include \
 	-I../../arch/avr8/atmega1284 \
 	main.c -o main \
@@ -11,8 +10,7 @@ all:
 
 debug:
 	avr-gcc -pipe -gstabs -static -Og -g -mmcu=atmega1284 -DF_CPU=8000000 \
-	-fdata-sections -ffunction-sections -Wl,--gc-sections,-u, \
-	-Wno-implicit-function-declaration \
+	-fdata-sections -ffunction-sections -Wall -Wl,--gc-sections,-u, \
 	-I../../kernel/include \
 	-I../../arch/avr8/atmega1284 \
 	main.c -o main \

@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "arch.h"
 #include "kernel_api.h"
 #include "timers.h"
 
@@ -24,6 +25,8 @@ static int uart_putchar(char c, FILE *tnameeam)
   arch_uart_byte_send(c);
   return 0;
 }
+
+
 static FILE uart_stdout = FDEV_SETUP_STREAM(uart_putchar, NULL,_FDEV_SETUP_WRITE);
 
 
@@ -45,6 +48,7 @@ void second_task(void *arg)
 
   int time = g_systicks / 125;
   int tid = task_getid();
+  //int tid2 = task_getby_name("1stTsk");
   char * const tname = task_getname(0);
 
   if (x >= 4)
@@ -71,7 +75,7 @@ void main_task(void *arg)
   int tid = task_getid();
   char * const tname = task_getname(0);
 
-  printf("##########################################\n");
+  printf("################## Start ##################\n");
 
   task_create("1stTsk", first_task, NULL);
   task_create("2ndTsk", second_task, NULL);
@@ -82,7 +86,7 @@ void main_task(void *arg)
 }
 
 
-void main(void)
+int main(void)
 {
   uart_init();
   stdout = &uart_stdout;
