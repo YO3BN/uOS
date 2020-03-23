@@ -5,8 +5,17 @@
  *      Author: yo3bn
  */
 
-#ifndef SRC_KERNEL_INCLUDE_PUBLIC_H_
-#define SRC_KERNEL_INCLUDE_PUBLIC_H_
+#ifndef SRC_KERNEL_INCLUDE_KERNEL_API_H_
+#define SRC_KERNEL_INCLUDE_KERNEL_API_H_
+
+
+/****************************************************************************
+ * Included files from kernel.
+ ****************************************************************************/
+
+#include "kernel.h"
+#include "task.h"
+#include "timers.h"
 
 
 /****************************************************************************
@@ -283,7 +292,7 @@ int task_sleep(unsigned int tid, const unsigned int ticks);
  *
  ****************************************************************************/
 
-inline unsigned int task_getid(void);
+unsigned int task_getid(void);
 
 
-#endif /* SRC_KERNEL_INCLUDE_PUBLIC_H_ */
+#endif /* SRC_KERNEL_INCLUDE_KERNEL_API_H_ */

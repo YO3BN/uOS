@@ -8,7 +8,9 @@
 #ifndef SRC_KERNEL_INCLUDE_CONFIG_H_
 #define SRC_KERNEL_INCLUDE_CONFIG_H_
 
-/* TODO */
+
+/* TODO #errors here for undefined. */
+/* TODO #error*/
 
 #define CONFIG_MAX_EVENTS     128
 
