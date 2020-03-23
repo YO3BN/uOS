@@ -1,4 +1,6 @@
 - make overall build system
+- move config.h outside of kernel source
+- deny external access to kernel variables / accessible only by functions.
 - produce / consume systicks, start failsafe context-switch kernel superviser
 - maybe in future remove demo and leave only apps
 - tid different of idx
@@ -8,8 +10,10 @@
 - decide if have to use separate work queue for kernel modules
 - some kernel work events cannot be consumed immediately? they have to remain stored in queue??
 - statistics idle time, load, uptime etc?
+- implement semaphore, queue, ipc, io, etc. in kernel.
 - task timer - waiting timer - have to implement semapahores before.
 - task state IPC_WAIT?
+- write about tasks in docs/ how they are ran, fsm, exit/return.
 - task yeld ??
 - tickless !!
 - code
