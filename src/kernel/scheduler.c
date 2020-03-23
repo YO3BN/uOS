@@ -11,6 +11,7 @@
  ****************************************************************************/
 
 #include "config.h"
+#include "arch.h"
 #include "private.h"
 #include "kernel.h"
 #include "klib.h"
@@ -63,7 +64,20 @@ int scheduler(kernel_event_t *event)
         {
           switch (task->state)
           {
-            /* These statements are priority ordered. */
+            /* These statements are priority ordered.
+             * Do not change the order.
+             */
+
+             case TASK_STATE_RESUMED:
+               task->state = task->last_state;
+               if (task->state == TASK_STATE_RUNNING)
+                 {
+                   task->state = TASK_STATE_READY;
+                 }
+
+               /* Do not break the case here.
+                * Check the state of the resumed task in this iteration.
+                */
 
              case TASK_STATE_READY:
                /* Run the task, also mark it as RUNNING. */
@@ -108,12 +122,6 @@ int scheduler(kernel_event_t *event)
                break;
 
 
-             case TASK_STATE_RESUMED:
-               task->state = TASK_STATE_READY;
-               work_todo = 1;
-               break;
-
-
              case TASK_STATE_PAUSED:
                /* Just skip it, but note that delay is not
                 * decremented anymore.
@@ -138,8 +146,15 @@ int scheduler(kernel_event_t *event)
 
             default:
               break;
-          }
-        }
+          } /* switch (task->state) */
+        } /* while (task_getnext(&task)) */
+
+      /* Reached end of task list. Set task to NULL in order to get
+       * first task at next iteration if still more wore work to do.
+       */
+
+      task = NULL;
+
     }
   while (work_todo);
 
