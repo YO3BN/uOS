@@ -5,294 +5,78 @@
  *      Author: yo3bn
  */
 
-#include <stddef.h>
 #include <stdio.h>
-
-#include <avr/io.h>
-
-#define MAX_TASKS 100
-
-#include "task.h"
-
 #include <stdint.h>
-#include <avr/io.h>
+#include <stdlib.h>
+
+#include "kernel_api.h"
+#include "timers.h"
 
 
-
-/*
- * The calculation of baudrate prescaler is done by the C
- * preprocessor inside <util/setbaud.h> which is part
- * of AVR C Library.
- *
- * BAUD and F_CPU macros have to be already defined
- * at this point.
- */
-#ifndef F_CPU
-# error "F_CPU is not defined. It is needed to calculate UART prescaler."
-#endif
-#define BAUD  9600
-#include <util/setbaud.h>
-
-#define MAX_TIME_COUNT (F_CPU>>4) // <- 125ms timeout at 1MHz CPU
-
-volatile uint8_t com_buf[256 + 16];
-
-void com_init(void)
+static void uart_init(void)
 {
-  /*
-   * Write the baudrate to the USART Baud Rate Register.
-   *
-   * The macros UBRRH_VALUE and UBRRL_VALUE already contains
-   * the required prescaler value and they were calculated
-   * by C preprocessor inside <util/setbaud.h> header.
-   */
-  UBRR0H = UBRRH_VALUE;
-  UBRR0L = UBRRL_VALUE;
-
-#if USE_2X
-  UCSR0A |= _BV(U2X0);
-#else
-  UCSR0A &= ~(_BV(U2X0));
-#endif
-
-  /* CONFIGURE: 8 BIT DATA, 1 STOP BIT, NO PARITY */
-  UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);
-  UCSR0B = _BV(RXEN0) | _BV(TXEN0);
+  arch_uart_init();
 }
 
 
-void uart_send_byte(uint8_t c)
+static int uart_putchar(char c, FILE *tnameeam)
 {
-  /* wait for empty transmit buffer */
-  while (!(UCSR0A & (1 << UDRE0)));
-
-  /* put data into buffer, sends data */
-  UDR0 = c;
-}
-
-
-int8_t uart_recv_byte(uint8_t *c)
-{
-  uint32_t count = 0;
-  while (!(UCSR0A & _BV(RXC0)))
-  {
-    count++;
-    if (count > MAX_TIME_COUNT)
-      return -1;
-  }
-  *c = UDR0;
+  arch_uart_byte_send(c);
   return 0;
 }
-
-
-void com_send(void *pvdata, uint16_t uslen)
-{
-  uint8_t *p = pvdata;
-  while (uslen)
-  {
-    uart_send_byte(*p);
-    uslen--;
-    p++;
-  }
-}
-
-
-uint16_t com_recv(void)
-{
-  uint16_t len;
-
-  for (len = 0; len < 256 + 16; len++)
-  {
-    if (uart_recv_byte((uint8_t*) com_buf + len) == -1)
-    {
-      break;
-    }
-  }
-
-  return len;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#include <avr/io.h>
-#include <avr/sleep.h>
-#include <avr/interrupt.h>
-
-#include "kernel.h"
-
-static volatile uint8_t tick_overflow;
- extern volatile unsigned long g_systicks;
-
-ISR(TIMER1_OVF_vect)
-{
-  tick_overflow = (uint8_t) 1;
-  g_systicks++;
-  kput_event_in_buffer(KERNEL_EVENT_IRQ_SYSTICK, 0);
-}
-
-
-void enable_interrupts()
-{
-sei();
-}
-
-
-void disable_interrupts()
-{
-cli();
-}
-
-
-
-
-void tick_init(void)
-{
-  TCCR1A = (uint8_t) \
-     (0 << COM1A1) |  /* Compare Output Mode A */
-     (0 << COM1A0) |  /* Compare Output Mode A */
-     (0 << COM1B1) |  /* Compare Output Mode B */
-     (0 << COM1B0) |  /* Compare Output Mode B */
-     (0 << FOC1A)  |  /* Force Output Compare A */
-     (0 << FOC1B)  |  /* Force Output Compare B */
-     (0 << WGM11)  |  /* Waveform Generation Mode */
-     (0 << WGM10);    /* Waveform Generation Mode */
-
-  TCCR1B = (uint8_t) \
-     (0 << ICNC1) |   /* Input Capture Noise Canceler */
-     (0 << ICES1) |   /* Input Capture Edge Select */
-     (0 << WGM13) |   /* Waveform Generation Mode */
-     (0 << WGM12) |   /* Waveform Generation Mode */
-     (0 << CS12)  |   /* Clock Select */
-     (0 << CS11)  |   /* Clock Select */
-     (0 << CS10);     /* Clock Select */
-
-  TIMSK1 = (uint8_t) \
-//    (0 << TICIE1) |   /* Timer/Cnt1 Input Capture Interrupt */
-//    (0 << OCIE1A) |   /* Timer/Cnt1 Output Compare Match */
-//    (0 << OCIE1B) |   /* Timer/Cnt1 Output Compare Match */
-    (1 << TOIE1);     /* Timer/Cnt1 Overflow Interrupt Enable */
-
-  /* Reset the values */
-  tick_overflow = (uint8_t) 0;
-  TCNT1 = (uint16_t) 0;
-}
-
-
-void timer_start(void)
-{
-  /* Start Timer/Counter1 by choosing the prescaler */
-  TCCR1B |= (uint8_t) \
-      (0 << CS12) |
-      (0 << CS11) |
-      (1 << CS10);
-
-  /* Reset the values */
-  tick_overflow = (uint8_t) 0;
-  TCNT1 = (uint16_t) 0;
-}
-
-
-void timer_stop(void)
-{
-  /* Clearing Clock will disable timer/counter1 */
-  TCCR1B &= (uint8_t) ~((1 << CS12) | (1 << CS11) | (1 << CS10));
-}
-
-
-uint8_t tick(void)
-{
-  cli();
-
-  /* Save MCUCR, it will be restored back later */
-  uint8_t mcucr = MCUCR;
-//tick_overflow = (uint8_t) 0;
-
-  set_sleep_mode(SLEEP_MODE_IDLE);
-  sleep_enable();
-  sei();
-//  timer_start();
-  sleep_cpu();
-//  timer_stop();
-
-  /*
-   * We don't need to use sleep_disable(),
-   * just restoring the MCUCR register.
-   */
-  MCUCR = mcucr;
-
-  /* Return TRUE when waking the CPU up by TIMER1_OVF */
-  //return tick_overflow;
-  if (tick_overflow) return 1;
-  else return 0;
-}
-
-
-
-
-#define zprintf(...) { char buf[123]; sprintf(buf, __VA_ARGS__); com_send(buf, strlen(buf)); }
+static FILE uart_stdout = FDEV_SETUP_STREAM(uart_putchar, NULL,_FDEV_SETUP_WRITE);
 
 
 void first_task(void *arg)
 {
-
-  int time = g_systicks /125;
+  int time = g_systicks / 125;
   int tid = task_getid();
-  char *const str = task_getname(0);
+  char *const tname = task_getname(0);
 
-  zprintf("============================================================\n");
-  zprintf("Time: %ds => I am task %d (%s), and I'll PAUSE myself. Waiting for others to RESUME me... \n",time, tid, str);
+  printf("============================================================\n");
+  printf("Time: %ds => Task: %d [%s]=> PAUSE.\n",time, tid, tname);
 
-  // Stop the task.
   task_pause(0);
 }
 
 
 void second_task(void *arg)
 {
-  static int x = 0;
+  static int x = 1;
 
-  int time = g_systicks /125;
+  int time = g_systicks / 125;
   int tid = task_getid();
-  char * const str = task_getname(0);
+  char * const tname = task_getname(0);
 
-  zprintf("Time: %ds => I am task %d, (%s) and I'll go to SLEEP for one second.\n", time, tid, str);
-  if (x >= 3)
+  if (x >= 4)
     {
-      zprintf("Time: %ds => I am task %d, I'll RESUME task 1...\n", time, tid);
+      x = 1;
+      printf("Time: %ds => Task: %d [%s]=> RESUME Task 1\n", time, tid, tname);
+
       task_resume(1);
-      x = 0;
+      return;
+    }
+  else
+    {
+      x++;
     }
 
-  x++;
-  //sleep
-  task_sleep(0, 125);
+  printf("Time: %ds => Task: %d [%s]=> SLEEP 2sec\n", time, tid, tname);
+
+  task_sleep(0, 2 * 125);
+  return;
 }
 
 
 void main(void)
 {
+  uart_init();
+  stdout = &uart_stdout;
+
   kernel_init();
 
-  task_create("first_task", first_task, NULL);
-  task_create("second_task", second_task, NULL);
+  task_create("1stTsk", first_task, NULL);
+  task_create("2ndTsk", second_task, NULL);
 
   kernel_start();
 }
