@@ -58,7 +58,6 @@ unsigned int kstrlen(const char *str)
 
 void kstrncpy(char *dst, char *src, unsigned int size)
 {
-  //TODO finish implementation
   unsigned int i = 0;
   int len;
 
@@ -67,14 +66,14 @@ void kstrncpy(char *dst, char *src, unsigned int size)
       return;
     }
 
-  len = kstrlen(src);//////////////
+  len = kstrlen(src);
 
-  for (i = 0; (i < size - 1) && (i < len); i++)
+  for (i = 0; (i < size - 1) && (i < len) && *(src + i); i++)
     {
-      *dst = *src;
+      *(dst + i) = *(src + i);
     }
-  //////////////////////////////
-}
 
+  *(dst + i) = '\0';
+}
 
 
