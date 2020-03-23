@@ -5,4 +5,4 @@
  *      Author: yo3bn
  */
 
-#include "../../avr8/atmega1284/arch.h"
+#include "arch.h"
