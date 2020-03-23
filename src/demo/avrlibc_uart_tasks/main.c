@@ -33,10 +33,9 @@ void first_task(void *arg)
   int tid = task_getid();
   char *const tname = task_getname(0);
 
-  printf("============================================================\n");
   printf("Time: %ds => Task: %d [%s]=> PAUSE.\n",time, tid, tname);
 
-  task_pause(0);
+  return (void) task_pause(0);
 }
 
 
@@ -53,8 +52,7 @@ void second_task(void *arg)
       x = 1;
       printf("Time: %ds => Task: %d [%s]=> RESUME Task 1\n", time, tid, tname);
 
-      task_resume(1);
-      return;
+      return (void) task_resume(2);
     }
   else
     {
@@ -63,8 +61,24 @@ void second_task(void *arg)
 
   printf("Time: %ds => Task: %d [%s]=> SLEEP 2sec\n", time, tid, tname);
 
-  task_sleep(0, 2 * 125);
-  return;
+  return (void) task_sleep(0, 2 * 125);
+}
+
+
+void main_task(void *arg)
+{
+  int time = g_systicks / 125;
+  int tid = task_getid();
+  char * const tname = task_getname(0);
+
+  printf("##########################################\n");
+
+  task_create("1stTsk", first_task, NULL);
+  task_create("2ndTsk", second_task, NULL);
+
+  printf("Time: %ds => Task: %d [%s]=> DESTROY\n", time, tid, tname);
+
+  return (void) task_destroy(0);
 }
 
 
@@ -75,8 +89,7 @@ void main(void)
 
   kernel_init();
 
-  task_create("1stTsk", first_task, NULL);
-  task_create("2ndTsk", second_task, NULL);
+  task_create("MainTsk", main_task, NULL);
 
   kernel_start();
 }
