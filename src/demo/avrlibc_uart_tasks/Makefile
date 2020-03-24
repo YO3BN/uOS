@@ -4,6 +4,7 @@ all:
 	-fdata-sections -ffunction-sections -Wall -Wl,--gc-sections,-u, \
 	-I../../kernel/include \
 	-I../../arch/avr8/atmega1284 \
+	-I../../demo/avrlibc_uart_tasks \
 	main.c -o main \
 	../../../src/kernel/*.c \
 	../../../src/arch/avr8/atmega1284/*.c
@@ -13,6 +14,7 @@ debug:
 	-fdata-sections -ffunction-sections -Wall -Wl,--gc-sections,-u, \
 	-I../../kernel/include \
 	-I../../arch/avr8/atmega1284 \
+	-I../../demo/avrlibc_uart_tasks \
 	main.c -o main \
 	../../../src/kernel/*.c \
 	../../../src/arch/avr8/atmega1284/*.c
