@@ -1,5 +1,4 @@
 - make overall build system
-- move config.h outside of kernel source
 - deny external access to kernel variables / accessible only by functions.
 - produce / consume systicks, start failsafe context-switch kernel superviser
 - maybe in future remove demo and leave only apps
@@ -16,9 +15,10 @@
 - write about tasks in docs/ how they are ran, fsm, exit/return.
 - task yeld ??
 - tickless !!
-- implement task_getby_name()
-- implement strcmp()
 - remove exited tasks
+- duplicate task names??
+- kernel version, compilation time, etc ?
+- change "task_name" to simply "name"
 - code
 - debug
 - etc

@@ -146,6 +146,26 @@ char *const task_getname(int tid);
 
 
 /****************************************************************************
+ * Name: task_getby_name
+ *
+ * Description:
+ *    Get a pointer to a task specifying the task name.
+ *
+ * Input Parameters:
+ *    name - Task name to search for.
+ *
+ * Returned Value:
+ *    Valid pointer to task - For success.
+ *    NULL - For errors.
+ *
+ * Assumptions:
+ *
+ ****************************************************************************/
+
+task_t *task_getby_name(const char *name);
+
+
+/****************************************************************************
  * Name: task_resume
  *
  * Description:
@@ -244,6 +264,26 @@ int task_sleep(unsigned int tid, const unsigned int ticks);
  ****************************************************************************/
 
 unsigned int task_getid(void);
+
+
+/****************************************************************************
+ * Name: task_getidby_name
+ *
+ * Description:
+ *    Get the task ID by named by given argument "name".
+ *
+ * Input Parameters:
+ *    name - Task name to search for.
+ *
+ * Returned Value:
+ *    Task ID.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+unsigned int task_getidby_name(const char *name);
 
 
 #endif /* TASK_H_ */

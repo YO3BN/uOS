@@ -48,15 +48,15 @@ void second_task(void *arg)
 
   int time = g_systicks / 125;
   int tid = task_getid();
-  //int tid2 = task_getby_name("1stTsk");
+  int tid2 = task_getidby_name("1stTsk");
   char * const tname = task_getname(0);
 
   if (x >= 4)
     {
       x = 1;
-      printf("Time: %ds => Task: %d [%s]=> RESUME Task 1\n", time, tid, tname);
+      printf("Time: %ds => Task: %d [%s]=> RESUME Task: %d [1stTsk]\n", time, tid, tname, tid2);
 
-      return (void) task_resume(2);
+      return (void) task_resume(tid2);
     }
   else
     {

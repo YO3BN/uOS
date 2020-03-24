@@ -195,6 +195,43 @@ task_t *task_getby_id(int tid)
 
 
 /****************************************************************************
+ * Name: task_getby_name
+ *
+ * Description:
+ *    Get a pointer to a task specifying the task name.
+ *
+ * Input Parameters:
+ *    name - Task name to search for.
+ *
+ * Returned Value:
+ *    Valid pointer to task - For success.
+ *    NULL - For errors.
+ *
+ * Assumptions:
+ *
+ ****************************************************************************/
+
+task_t *task_getby_name(const char *name)
+{
+  task_t *task = NULL;
+
+  if (!name)
+    {
+      return NULL;
+    }
+
+  while (task_getnext(&task))
+    {
+      if (kstreq(name, task->task_name))
+        {
+          break;
+        }
+    }
+
+  return task;
+}
+
+/****************************************************************************
  * Name: task_getname
  *
  * Description:
@@ -414,4 +451,43 @@ unsigned int task_getid(void)
   return g_running_task->tid;
 }
 
+
+/****************************************************************************
+ * Name: task_getidby_name
+ *
+ * Description:
+ *    Get the task ID by named by given argument "name".
+ *
+ * Input Parameters:
+ *    name - Task name to search for.
+ *
+ * Returned Value:
+ *    Task ID.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+unsigned int task_getidby_name(const char *name)
+{
+  unsigned int tid = 0;
+  task_t *task = NULL;
+
+  if (!name)
+    {
+      return 0;
+    }
+
+  while (task_getnext(&task))
+    {
+      if (kstreq(name, task->task_name))
+        {
+          tid = task->tid;
+          break;
+        }
+    }
+
+  return tid;
+}
 
