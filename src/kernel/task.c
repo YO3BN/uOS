@@ -88,7 +88,7 @@ int task_create(const char *task_name, void (*entry_point)(void*), void *arg)
   g_task_array[i].tid = i + 1; // TODO FIXME overflow here
   g_task_array[i].state = TASK_STATE_READY;
   g_task_array[i].entry_point = entry_point;
-  kstrncpy(g_task_array[i].task_name, task_name, CONFIG_TASK_MAX_NAME + 1);
+  kstrncpy(g_task_array[i].name, task_name, CONFIG_TASK_MAX_NAME + 1);
 
   return 1;
 }
@@ -222,7 +222,7 @@ task_t *task_getby_name(const char *name)
 
   while (task_getnext(&task))
     {
-      if (kstreq(name, task->task_name))
+      if (kstreq(name, task->name))
         {
           break;
         }
@@ -264,7 +264,7 @@ char *const task_getname(int tid)
       return NULL;
     }
 
-  return task->task_name;
+  return task->name;
 }
 
 
@@ -481,7 +481,7 @@ unsigned int task_getidby_name(const char *name)
 
   while (task_getnext(&task))
     {
-      if (kstreq(name, task->task_name))
+      if (kstreq(name, task->name))
         {
           tid = task->tid;
           break;

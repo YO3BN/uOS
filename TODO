@@ -18,7 +18,6 @@
 - remove exited tasks
 - duplicate task names??
 - kernel version, compilation time, etc ?
-- change "task_name" to simply "name"
 - code
 - debug
 - etc

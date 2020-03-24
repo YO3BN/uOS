@@ -26,7 +26,7 @@ typedef enum
 
 typedef struct
 {
-  char task_name[CONFIG_TASK_MAX_NAME + 1];
+  char name[CONFIG_TASK_MAX_NAME + 1];
   void *arg;
   void *saved_data;
   void *entry_point;
