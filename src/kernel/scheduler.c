@@ -19,6 +19,7 @@
 #include "timers.h"
 #include "scheduler.h"
 
+
 /****************************************************************************
  * Name: scheduler
  *
@@ -143,6 +144,11 @@ int scheduler(kernel_event_t *event)
                break;
 
 
+             case TASK_STATE_EXITED:
+               //TODO some cleanup and remove it from task array.
+               break;
+
+
             default:
               break;
           } /* switch (task->state) */
@@ -153,7 +159,6 @@ int scheduler(kernel_event_t *event)
        */
 
       task = NULL;
-
     }
   while (work_todo);
 

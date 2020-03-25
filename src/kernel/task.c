@@ -299,6 +299,7 @@ int task_resume(int tid)
 
   if (task)
     {
+      //TODO check if task is PAUSED.
       task->state = TASK_STATE_RESUMED;
       return 1;
     }
@@ -422,6 +423,7 @@ int task_sleep(unsigned int tid, const unsigned int ticks)
 
   if (task)
     {
+      //TODO only if ready or running
       task->state = TASK_STATE_SLEEP;
       task->wakeup_ticks = ticks + g_systicks; // TODO this in critical section
       return 1;

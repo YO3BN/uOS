@@ -11,7 +11,6 @@
 
 #include "arch.h"
 #include "kernel_api.h"
-#include "timers.h"
 
 
 static void uart_init(void)
@@ -20,7 +19,7 @@ static void uart_init(void)
 }
 
 
-static int uart_putchar(char c, FILE *tnameeam)
+static int uart_putchar(char c, FILE *f)
 {
   arch_uart_byte_send(c);
   return 0;
@@ -36,7 +35,7 @@ void first_task(void *arg)
   int tid = task_getid();
   char *const tname = task_getname(0);
 
-  printf("Time: %ds => Task: %d [%s]=> PAUSE.\n",time, tid, tname);
+  printf("Time: %ds => Task: %d [%s]=> PAUSE.\n", time, tid, tname);
 
   return (void) task_pause(0);
 }

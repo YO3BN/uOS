@@ -1,3 +1,4 @@
+- driver API: drv_ctl_xxx(), drv_read_xxx(), drv_write_xxx() ??
 - make overall build system
 - deny external access to kernel variables / accessible only by functions.
 - produce / consume systicks, start failsafe context-switch kernel superviser
@@ -16,8 +17,11 @@
 - task yeld ??
 - tickless !!
 - remove exited tasks
+- optimize binary code by creating inline functions for ISR, and other arch dependend code.
 - duplicate task names??
+- what to do if a task is destroyed but have memory allocated. who will perform the cleanup?
 - kernel version, compilation time, etc ?
+- static tasks use static variables for context, dynamic or duplicate tasks should use dynamic memory.
 - code
 - debug
 - etc

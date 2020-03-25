@@ -94,7 +94,7 @@ void arch_configure_systick(void)
 
 extern volatile unsigned long g_systicks;
 
-
+//TODO move this in kernel
 void systick_push(void)
 {
   g_systicks++;
