@@ -208,6 +208,7 @@ task_t *task_getby_id(int tid)
  *    NULL - For errors.
  *
  * Assumptions:
+ *    If there are many tasks with the same name, only first one is returned.
  *
  ****************************************************************************/
 
@@ -364,7 +365,7 @@ int task_pause(int tid)
 
 int task_destroy(int tid)
 {
-  task_t *task;
+  task_t *task = NULL;
 
   if (!tid)
     {
@@ -375,8 +376,14 @@ int task_destroy(int tid)
 
   if (task)
     {
-      //TODO implement
+      /* Remove task id, task name and set state to EXITED,
+       * thus others should not be able to find this task
+       * anymore by name or id.
+       */
+
+      task->tid = 0;
       task->state = TASK_STATE_EXITED;
+      kmemset(task->name, 0, CONFIG_TASK_MAX_NAME + 1);
       return 1;
     }
 
@@ -465,7 +472,7 @@ unsigned int task_getid(void)
  *    Task ID.
  *
  * Assumptions:
- *    none
+ *    If there are many tasks with the same name, only first one is returned.
  *
  ****************************************************************************/
 

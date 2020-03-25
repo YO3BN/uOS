@@ -8,7 +8,9 @@
 #ifndef TASK_H_
 #define TASK_H_
 
+
 #include "config.h"
+
 
 typedef enum
 {
@@ -43,17 +45,6 @@ typedef struct
 
 
 extern task_t *g_running_task;
-
-
-
-
-
-
-
-
-
-
-
 
 
 /****************************************************************************
@@ -159,6 +150,7 @@ char *const task_getname(int tid);
  *    NULL - For errors.
  *
  * Assumptions:
+ *    If there are many tasks with the same name, only first one is returned.
  *
  ****************************************************************************/
 
@@ -279,7 +271,7 @@ unsigned int task_getid(void);
  *    Task ID.
  *
  * Assumptions:
- *    none
+ *    If there are many tasks with the same name, only first one is returned.
  *
  ****************************************************************************/
 
