@@ -295,4 +295,8 @@ int task_sleep(unsigned int tid, const unsigned int ticks);
 unsigned int task_getid(void);
 
 
+//TODO document these
+void systick(void);
+unsigned long getsysticks(void);
+
 #endif /* SRC_KERNEL_INCLUDE_KERNEL_API_H_ */

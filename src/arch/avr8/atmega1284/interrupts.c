@@ -7,10 +7,10 @@
 
 #include "arch.h"
 #include <avr/interrupt.h>
-
+#include "kernel_api.h"
 
 
 ISR(TIMER1_OVF_vect)
 {
-  systick_push();
+  systick();
 }

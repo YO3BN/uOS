@@ -31,7 +31,7 @@ static FILE uart_stdout = FDEV_SETUP_STREAM(uart_putchar, NULL,_FDEV_SETUP_WRITE
 
 void first_task(void *arg)
 {
-  int time = g_systicks / 125;
+  int time = getsysticks() / 125;
   int tid = task_getid();
   char *const tname = task_getname(0);
 
@@ -45,7 +45,7 @@ void second_task(void *arg)
 {
   static int x = 1;
 
-  int time = g_systicks / 125;
+  int time = getsysticks() / 125;
   int tid = task_getid();
   int tid2 = task_getidby_name("1stTsk");
   char * const tname = task_getname(0);
@@ -70,7 +70,7 @@ void second_task(void *arg)
 
 void main_task(void *arg)
 {
-  int time = g_systicks / 125;
+  int time = getsysticks() / 125;
   int tid = task_getid();
   char * const tname = task_getname(0);
 

@@ -94,13 +94,6 @@ void arch_configure_systick(void)
 
 extern volatile unsigned long g_systicks;
 
-//TODO move this in kernel
-void systick_push(void)
-{
-  g_systicks++;
-  kput_event_in_buffer(KERNEL_EVENT_IRQ_SYSTICK, 0);
-}
-
 void arch_stop_systick(void)
 {
  /* Clearing Clock will disable timer/counter1 */

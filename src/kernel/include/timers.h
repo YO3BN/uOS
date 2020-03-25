@@ -14,7 +14,8 @@ void start_systick(void);
 void start_watchdog(void);
 void configure_systick(void);
 void configure_watchdog(void);
-
+void systick(void);
+unsigned long getsysticks(void);
 
 extern volatile unsigned long g_systicks;
 

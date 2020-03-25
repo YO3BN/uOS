@@ -6,6 +6,7 @@
  */
 
 #include "arch.h"
+#include "kernel_api.h"
 
 
 //TODO maybe long long? or other approach!
@@ -40,4 +41,17 @@ void configure_systick(void)
 void configure_watchdog(void)
 {
   arch_configure_watchdog();
+}
+
+
+void systick(void)
+{
+  g_systicks++;
+  kput_event_in_buffer(KERNEL_EVENT_IRQ_SYSTICK, 0);
+}
+
+
+unsigned long getsysticks(void)
+{
+  return g_systicks;
 }
