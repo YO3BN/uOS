@@ -47,7 +47,7 @@ void configure_watchdog(void)
 void systick(void)
 {
   g_systicks++;
-  kput_event_in_buffer(KERNEL_EVENT_IRQ_SYSTICK, 0);
+  kput_event_crit(KERNEL_EVENT_IRQ_SYSTICK, 0);
 }
 
 

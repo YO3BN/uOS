@@ -288,6 +288,7 @@ char *const task_getname(int tid)
 
 int task_resume(int tid)
 {
+  int ret = 0;
   task_t *task = NULL;
 
   if (!tid)
@@ -299,12 +300,14 @@ int task_resume(int tid)
 
   if (task)
     {
-      //TODO check if task is PAUSED.
-      task->state = TASK_STATE_RESUMED;
-      return 1;
+      if (task->state == TASK_STATE_PAUSED)
+        {
+          task->state = TASK_STATE_RESUMED;
+          ret = 1;
+        }
     }
 
-  return 0;
+  return ret;
 }
 
 

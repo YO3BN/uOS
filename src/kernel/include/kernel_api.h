@@ -23,10 +23,11 @@
  ****************************************************************************/
 
 /****************************************************************************
- * Name: kput_event_in_buffer
+ * Name: kput_event_crit
  *
  * Description:
  *    Insert new event in the circular buffer.
+ *    This function is used in critical sections and ISR.
  *
  * Input Parameters:
  *    type - Event type.
@@ -36,18 +37,18 @@
  *    none
  *
  * Assumptions:
- *    This should be called only from ISR context.
+ *    This should be called only from critical section or ISR context.
  *
  ****************************************************************************/
 
-void kput_event_in_buffer(unsigned char type, unsigned char data);
+void kput_event_crit(unsigned char type, unsigned char data);
 
 
 /****************************************************************************
- * Name: kput_event_in_buffer_critical
+ * Name: kput_event_nocrit
  *
  * Description:
- *    Insert new event in the circular buffer (critical).
+ *    Insert new event in the circular buffer (no critical).
  *
  * Input Parameters:
  *    type - Event type.
@@ -57,11 +58,11 @@ void kput_event_in_buffer(unsigned char type, unsigned char data);
  *    none
  *
  * Assumptions:
- *    This should NOT be called from ISR context.
+ *    This should be called ONLY from kernel context, not from ISR.
  *
  ****************************************************************************/
 
-void kput_event_in_buffer_critical(unsigned char type, unsigned char data);
+void kput_event_nocrit(unsigned char type, unsigned char data);
 
 
 /****************************************************************************
