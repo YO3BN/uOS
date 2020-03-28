@@ -143,7 +143,6 @@ static void kconsume_event(kernel_event_t *event)
     {
       /* Add other kernel submodules here (io, sem, etc.). */
 
-      work_todo |= semaphores(event);
       work_todo |= scheduler(event);
     }
   while (work_todo);
