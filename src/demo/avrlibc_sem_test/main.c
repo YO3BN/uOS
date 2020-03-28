@@ -30,6 +30,8 @@ static int uart_putchar(char c, FILE *f)
 static FILE uart_stdout = FDEV_SETUP_STREAM(uart_putchar, NULL,_FDEV_SETUP_WRITE);
 
 semaphore_t s;
+semaphore_t p;
+
 
 void first_task(void *arg)
 {
@@ -42,7 +44,8 @@ void first_task(void *arg)
   switch (sem_take(&s, 1))
   {
     case SEM_TAKE_TOOK:
-      printf("Tick: %lu => Task: %d [%s]=> WORK TODO.\n", time, tid, tname);
+      printf("Tick: %lu => Task: %d [%s]=> SEM GIVE.\n", time, tid, tname);
+      sem_give(&p);
       return;
 
     case SEM_TAKE_WAIT:
@@ -84,6 +87,30 @@ void second_task(void *arg)
 }
 
 
+void third_task(void *arg)
+{
+  unsigned long time = getsysticks();
+  int tid = task_getid();
+  char *const tname = task_getname(0);
+
+  printf("Tick: %lu => Task: %d [%s]=> ALIVE.\n", time, tid, tname);
+
+  switch (sem_take(&p, 1))
+  {
+    case SEM_TAKE_TOOK:
+      printf("Tick: %lu => Task: %d [%s]=> WORK TODO.\n", time, tid, tname);
+      return;
+
+    case SEM_TAKE_WAIT:
+      printf("Tick: %lu => Task: %d [%s]=> SEM_WAIT.\n", time, tid, tname);
+      return;
+
+    default:
+      printf("plm...\n");
+      return;
+  }
+}
+
 void main_task(void *arg)
 {
   unsigned long time = getsysticks();
@@ -91,11 +118,13 @@ void main_task(void *arg)
   char * const tname = task_getname(0);
 
   sem_init(&s);
+  sem_init(&p);
 
   printf("################## Start ##################\n");
 
   task_create("1stTsk", first_task, NULL);
   task_create("2ndTsk", second_task, NULL);
+  task_create("3rdTsk", third_task, NULL);
 
   printf("Tick: %lu => Task: %d [%s]=> DESTROY\n", time, tid, tname);
 
