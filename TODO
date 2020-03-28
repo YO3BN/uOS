@@ -15,6 +15,7 @@
 - task state IPC_WAIT?
 - write about tasks in docs/ how they are ran, fsm, exit/return.
 - task yeld ??
+- semaphore owner??
 - task destroy should enirely remove task from array.
 - tickless !!
 - remove exited tasks
