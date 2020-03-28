@@ -15,12 +15,17 @@
 - task state IPC_WAIT?
 - write about tasks in docs/ how they are ran, fsm, exit/return.
 - task yeld ??
+- semaphore owner??
+- task destroy should enirely remove task from array.
 - tickless !!
 - remove exited tasks
+- Semaphore disabled/enabled by MACRO config
 - optimize binary code by creating inline functions for ISR, and other arch dependend code.
 - duplicate task names??
 - what to do if a task is destroyed but have memory allocated. who will perform the cleanup?
 - kernel version, compilation time, etc ?
+- analize if this statement: g_kevent_buffer.read_idx >= CONFIG_MAX_EVENTS is less efficient than modulo %
+- analize if kget_event should return a pointer to event position in kevent buffer, or it should copy the event as it is now.
 - static tasks use static variables for context, dynamic or duplicate tasks should use dynamic memory.
 - code
 - debug

@@ -16,6 +16,7 @@
 #include "kernel.h"
 #include "task.h"
 #include "timers.h"
+#include "semaphore.h"
 
 
 /****************************************************************************
@@ -23,45 +24,50 @@
  ****************************************************************************/
 
 /****************************************************************************
- * Name: kput_event_in_buffer
+ * Name: kput_event_crit
  *
  * Description:
  *    Insert new event in the circular buffer.
+ *    This function is used in critical sections and ISR.
  *
  * Input Parameters:
  *    type - Event type.
- *    data - Optional data.
+ *    data - Pointer to optional data.
+ *           Or it can be casted to other type smaller or equal than void
+ *           pointer. (char, int, void*).
  *
  * Returned Value:
  *    none
  *
  * Assumptions:
- *    This should be called only from ISR context.
+ *    This should be called only from critical section or ISR context.
  *
  ****************************************************************************/
 
-void kput_event_in_buffer(unsigned char type, unsigned char data);
+void kput_event_crit(unsigned char type, void * data);
 
 
 /****************************************************************************
- * Name: kput_event_in_buffer_critical
+ * Name: kput_event
  *
  * Description:
- *    Insert new event in the circular buffer (critical).
+ *    Insert new event in the circular buffer (no critical).
  *
  * Input Parameters:
  *    type - Event type.
- *    data - Optional data.
+ *    data - Pointer to optional data.
+ *           Or it can be casted to other type smaller or equal than void
+ *           pointer. (char, int, void*).
  *
  * Returned Value:
  *    none
  *
  * Assumptions:
- *    This should NOT be called from ISR context.
+ *    This should be called ONLY from kernel context, not from ISR.
  *
  ****************************************************************************/
 
-void kput_event_in_buffer_critical(unsigned char type, unsigned char data);
+void kput_event(unsigned char type, void * data);
 
 
 /****************************************************************************
@@ -293,6 +299,94 @@ int task_sleep(unsigned int tid, const unsigned int ticks);
  ****************************************************************************/
 
 unsigned int task_getid(void);
+
+
+/****************************************************************************
+ * Name: sem_init
+ *
+ * Description:
+ *  Initialize a semaphore.
+ *
+ * Input Parameters:
+ *  sem - Pointer to semaphore.
+ *
+ * Returned Value:
+ *  none
+ *
+ * Assumptions:
+ *
+ ****************************************************************************/
+
+void sem_init(semaphore_t *sem);
+
+
+/****************************************************************************
+ * Name: sem_take
+ *
+ * Description:
+ *  Take the semaphore using a waiting type.
+ *  This function does not block, but it will return a specific state for
+ *  waiting.
+ *
+ * Input Parameters:
+ *  sem - Semaphore pointer.
+ *  wait - Wait type. Waiting forever, or no waiting at all.
+ *
+ * Returned Value:
+ *  SEM_STATUS_ERROR - If error encountered.
+ *  SEM_STATUS_TOOK - If semaphore was took.
+ *  SEM_STATUS_WAIT - If the semaphore is not available.
+ *                    The task will not be called after exit, thus until
+ *                    semaphore is available.
+ *  SEM_STATUS_BUSY - If the waiting type is WAIT_NO, this is returned when
+ *                    the semaphore is not available.
+ *
+ * Assumptions:
+ *  Called only from a valid task, not from kernel, nor from ISR.
+ *
+ ****************************************************************************/
+
+SEM_STATUS_T sem_take(semaphore_t *sem, SEM_WAIT_T wait);
+
+
+/****************************************************************************
+ * Name: sem_giveISR
+ *
+ * Description:
+ *  Give semaphore from ISR.
+ *
+ * Input Parameters:
+ *  sem - Pointer to semaphore.
+ *
+ * Returned Value:
+ *  none
+ *
+ * Assumptions:
+ *  Should be called from ISR ONLY.
+ *
+ ****************************************************************************/
+
+void sem_giveISR(semaphore_t *sem);
+
+
+/****************************************************************************
+ * Name: sem_give
+ *
+ * Description:
+ *  Give semaphore for a resource.
+ *
+ * Input Parameters:
+ *  sem - Pointer to semaphore.
+ *
+ * Returned Value:
+ *  SEM_STATUS_OK - Success.
+ *  SEM_STATUS_ERROR - If error encountered.
+ *
+ * Assumptions:
+ *
+ ****************************************************************************/
+
+SEM_STATUS_T sem_give(semaphore_t *sem);
 
 
 //TODO document these

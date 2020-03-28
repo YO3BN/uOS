@@ -18,17 +18,17 @@ typedef enum
   KERNEL_EVENT_IRQ_WATCHDOG,
   KERNEL_EVENT_IO_SENT,
   KERNEL_EVENT_IO_RCVD,
-  KERNEL_EVENT_SEM_LOCKED,
-  KERNEL_EVENT_SEM_UNLOCKED,
+  KERNEL_EVENT_SEM_TAKEN,
+  KERNEL_EVENT_SEM_GIVEN,
   KERNEL_EVENT_IPC_SENT,
   KERNEL_EVENT_IPC_RCVD,
 } kernel_event_type_t;
 
 
-typedef struct
+typedef volatile struct
 {
   unsigned char type;
-  unsigned char data;
+  void * data;
 } kernel_event_t;
 
 

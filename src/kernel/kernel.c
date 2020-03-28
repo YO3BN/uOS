@@ -17,6 +17,7 @@
 #include "kernel.h"
 #include "timers.h"
 #include "scheduler.h"
+#include "semaphore.h"
 #include "klib.h"
 
 
@@ -24,7 +25,7 @@
  * Private data.
  ****************************************************************************/
 
-/* Kernel Event Circular Buffer
+/* Kernel Event Buffer
  *
  * Events produced by INTERRUPTS, KERNEL are stored temporarily in this buffer
  * and consumed from here by kernel itself, its submodules and finally tasks.
@@ -37,6 +38,7 @@ static volatile struct
 {
   unsigned char read_idx;                   /* Position for retrieving. */
   unsigned char write_idx;                  /* Position for inserting. */
+  unsigned char used_size;                  /* Events stored in array. */
   kernel_event_t event[CONFIG_MAX_EVENTS];  /* Events are stored here. */
 } g_kevent_buffer;
 
@@ -47,7 +49,7 @@ static volatile struct
 
 
 /****************************************************************************
- * Name: kget_event_from_buffer
+ * Name: kget_event
  *
  * Description:
  *    Retrieve next event available in the circular buffer.
@@ -60,68 +62,60 @@ static volatile struct
  *    0 - if the event is invalid.
  *
  * Assumptions:
- *    This should be called from kernel context.
+ *    This should be called only from kernel context.
  *
  ****************************************************************************/
 
-static int kget_event_from_buffer(kernel_event_t *event)
+static int kget_event(kernel_event_t *event)
 {
-  int cnt = 0;
+  int ret = 0;
 
   if (event == NULL)
     {
-      return 0;
+      return ret;
     }
-
-  /* Clear previous event. */
-
-  kmemset(event, 0, sizeof(kernel_event_t));
 
   /* Enter critical and check for available event. */
 
   disable_interrupts();
-
-  do
+  if (g_kevent_buffer.used_size > 0)
     {
-      event->type = g_kevent_buffer.event[g_kevent_buffer.read_idx].type;
-      if (event->type != KERNEL_EVENT_NONE)
-        {
-          event->data = g_kevent_buffer.event[g_kevent_buffer.read_idx].data;
+      /* Copy event from kernel buffer in order to be used locally. */
 
-          /* Clear entry. */
+      kmemcpy((void*) event,
+              (void*) &g_kevent_buffer.event[g_kevent_buffer.read_idx],
+              sizeof(kernel_event_t));
 
-          g_kevent_buffer.event[g_kevent_buffer.read_idx].type = \
-              KERNEL_EVENT_NONE;
-          g_kevent_buffer.event[g_kevent_buffer.read_idx].data = 0;
-        }
+      /* Decrease used slots in buffer.
+       *
+       * NOTE: The event content is not removed from buffer.
+       * FIXME: Not sure if removing its content is really required.
+       */
 
-      /* Advance read index. Reset it at the beginning of the array. */
-
+      g_kevent_buffer.used_size--;
       g_kevent_buffer.read_idx++;
+
+      /* Buffer overlapping.
+       * TODO: Use modulo % if is more efficient.
+       */
+
       if (g_kevent_buffer.read_idx >= CONFIG_MAX_EVENTS)
         {
-          g_kevent_buffer.read_idx = 0;
+            g_kevent_buffer.read_idx = 0;
         }
 
-      cnt++;
+      ret = 1;
     }
-  while (event->type == KERNEL_EVENT_NONE && cnt <= CONFIG_MAX_EVENTS);
 
   /* Exit critical section. */
 
   enable_interrupts();
-
-  if (event->type != KERNEL_EVENT_NONE)
-    {
-      return 1;
-    }
-
-  return 0;
+  return ret;
 }
 
 
 /****************************************************************************
- * Name: kconsume_events
+ * Name: kconsume_event
  *
  * Description:
  *  - Dispatch the event to all system modules, tasks in order to be consumed.
@@ -139,7 +133,7 @@ static int kget_event_from_buffer(kernel_event_t *event)
  *
  ****************************************************************************/
 
-static void kconsume_events(kernel_event_t *event)
+static void kconsume_event(kernel_event_t *event)
 {
   int work_todo = 0;
 
@@ -152,6 +146,10 @@ static void kconsume_events(kernel_event_t *event)
       work_todo |= scheduler(event);
     }
   while (work_todo);
+
+  /* Clear event. */
+
+  kmemset((void*) event, 0, sizeof(kernel_event_t));
 }
 
 
@@ -174,27 +172,24 @@ static void kconsume_events(kernel_event_t *event)
 
 static void kernel_event_loop(void)
 {
-  int ret = 0;
   kernel_event_t event;
 
   /* Forever processing events. */
 
   for (;;)
     {
-      ret = kget_event_from_buffer(&event);
+      /* Consume all events from buffer. */
 
-      /* Check if there are events to consume. */
-
-      if (ret)
+      while (kget_event(&event))
         {
           /* Now, events are going to be consumed by other system parts,
-           * (io waiting modules, semaphores, timers, scheduler, tasks, etc).
+           * (io modules, semaphores, timers, scheduler, tasks, etc).
            * This is the most cpu intensive and time consuming operation.
            *
            * Expected to return before SysTick timer to tick.
            */
 
-          kconsume_events(&event);
+          kconsume_event(&event);
 
           /* Here, all events in the queue were consumed.
            * It is time to reset the watch dog timer.
@@ -226,28 +221,41 @@ static void kernel_event_loop(void)
 
 
 /****************************************************************************
- * Name: kput_event_in_buffer
+ * Name: kput_event_crit
  *
  * Description:
  *    Insert new event in the circular buffer.
+ *    This function is used in critical sections and ISR.
  *
  * Input Parameters:
  *    type - Event type.
- *    data - Optional data.
+ *    data - Pointer to optional data.
+ *           Or it can be casted to other type smaller or equal than void
+ *           pointer. (char, int, void*).
  *
  * Returned Value:
  *    none
  *
  * Assumptions:
- *    This should be called only from ISR context.
+ *    This should be called only from critical section or ISR context.
  *
  ****************************************************************************/
 
-void kput_event_in_buffer(unsigned char type, unsigned char data)
+void kput_event_crit(unsigned char type, void * data)
 {
+  if (g_kevent_buffer.used_size >= CONFIG_MAX_EVENTS)
+    {
+      return;
+    }
+
   g_kevent_buffer.event[g_kevent_buffer.write_idx].type = type;
   g_kevent_buffer.event[g_kevent_buffer.write_idx].data = data;
+  g_kevent_buffer.used_size++;
   g_kevent_buffer.write_idx++;
+
+  /* Buffer overlapping.
+   * TODO: Use modulo % if is more efficient.
+   */
 
   if (g_kevent_buffer.write_idx >= CONFIG_MAX_EVENTS)
     {
@@ -257,36 +265,29 @@ void kput_event_in_buffer(unsigned char type, unsigned char data)
 
 
 /****************************************************************************
- * Name: kput_event_in_buffer_critical
+ * Name: kput_event
  *
  * Description:
- *    Insert new event in the circular buffer (critical).
+ *    Insert new event in the circular buffer (no critical).
  *
  * Input Parameters:
  *    type - Event type.
- *    data - Optional data.
+ *    data - Pointer to optional data.
+ *           Or it can be casted to other type smaller or equal than void
+ *           pointer. (char, int, void*).
  *
  * Returned Value:
  *    none
  *
  * Assumptions:
- *    This should NOT be called from ISR context.
+ *    This should be called ONLY from kernel context, not from ISR.
  *
  ****************************************************************************/
 
-void kput_event_in_buffer_critical(unsigned char type, unsigned char data)
+void kput_event(unsigned char type, void * data)
 {
   disable_interrupts();
-
-  g_kevent_buffer.event[g_kevent_buffer.write_idx].type = type;
-  g_kevent_buffer.event[g_kevent_buffer.write_idx].data = data;
-  g_kevent_buffer.write_idx++;
-
-  if (g_kevent_buffer.write_idx >= CONFIG_MAX_EVENTS)
-    {
-      g_kevent_buffer.write_idx = 0;
-    }
-
+  kput_event_crit(type, data);
   enable_interrupts();
 }
 

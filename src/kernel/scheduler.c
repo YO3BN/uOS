@@ -18,6 +18,7 @@
 #include "task.h"
 #include "timers.h"
 #include "scheduler.h"
+#include "semaphore.h"
 
 
 /****************************************************************************
@@ -68,18 +69,7 @@ int scheduler(kernel_event_t *event)
              * Do not change the order.
              */
 
-             case TASK_STATE_RESUMED:
-               task->state = task->last_state;
-               if (task->state == TASK_STATE_RUNNING)
-                 {
-                   task->state = TASK_STATE_READY;
-                 }
-
-               /* Do not break the case here.
-                * Check the state of the resumed task in this iteration.
-                */
-
-             case TASK_STATE_READY:
+            case TASK_STATE_READY:
                /* Run the task, also mark it as RUNNING. */
 
                g_running_task = task;
@@ -104,7 +94,7 @@ int scheduler(kernel_event_t *event)
                break;
 
 
-             case TASK_STATE_IO_WAIT:
+            case TASK_STATE_IO_WAIT:
                if (event->type == KERNEL_EVENT_IO_RCVD)
                  {
                    //TODO check_io_for_this_task();
@@ -113,16 +103,32 @@ int scheduler(kernel_event_t *event)
                break;
 
 
-             case TASK_STATE_SEM_WAIT:
-               if (event->type == KERNEL_EVENT_SEM_UNLOCKED)
+            case TASK_STATE_SEM_WAIT:
+               if (event->type == KERNEL_EVENT_SEM_GIVEN)
                  {
-                   //TODO check_sem_for_this_task();
-                   //TODO if yes, then set it ready to run and set work to do.
+                   /* Check if this tasks is waiting for this semaphore. */
+
+                   if (sem_pop_waitingtask((semaphore_t*) event->data,
+                                           task->idx))
+                     {
+                       task->state = TASK_STATE_READY;
+                       work_todo = 1;
+                     }
                  }
                break;
 
 
-             case TASK_STATE_PAUSED:
+            case TASK_STATE_RESUMED:
+                task->state = task->last_state;
+                if (task->state == TASK_STATE_RUNNING)
+                  {
+                    task->state = TASK_STATE_READY;
+                    work_todo = 1;
+                  }
+                break;
+
+
+            case TASK_STATE_PAUSED:
                /* Just skip it, but note that delay is not
                 * decremented anymore.
                 */
@@ -130,7 +136,7 @@ int scheduler(kernel_event_t *event)
                break;
 
 
-             case TASK_STATE_SLEEP:
+            case TASK_STATE_SLEEP:
                if (event->type == KERNEL_EVENT_IRQ_SYSTICK)
                  {
                    //TODO get g_systicks in critical section
@@ -144,7 +150,7 @@ int scheduler(kernel_event_t *event)
                break;
 
 
-             case TASK_STATE_EXITED:
+            case TASK_STATE_EXITED:
                //TODO some cleanup and remove it from task array.
                break;
 

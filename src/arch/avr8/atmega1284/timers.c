@@ -45,9 +45,9 @@ void arch_start_systick(void)
   /* Start Timer/Counter1 by choosing the prescaler. */
 
   TCCR1B |= (uint8_t) \
-      (0 << CS12) |
+      (1 << CS12) |
       (0 << CS11) |
-      (1 << CS10);
+      (0 << CS10);
 
   /* Reset the values. */
 
@@ -91,8 +91,6 @@ void arch_configure_systick(void)
   TCNT1 = (uint16_t) 0;
 }
 
-
-extern volatile unsigned long g_systicks;
 
 void arch_stop_systick(void)
 {
