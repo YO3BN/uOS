@@ -5,10 +5,10 @@
 #define CONFIG_SEM_MAX_TASK_QUEUE 10
 
 
-typedef struct
+typedef volatile struct
 {
   int resources;
-  int counter;
+//  int counter;
 //  int changed;
 //  int owner;
 //  int task_queue[CONFIG_SEM_MAX_TASK_QUEUE];
@@ -34,7 +34,12 @@ typedef enum
   SEM_GIVE_FULL,
 } SEMGIVE_T;
 
+//wait type
+
+//wait timeout
+
+
 int semaphores(kernel_event_t *event);
 SEMGIVE_T sem_give(semaphore_t *sem);
 SEMTAKE_T sem_take(semaphore_t *sem, int wait);
-void sem_init(semaphore_t *sem, int resources);
+void sem_init(semaphore_t *sem);

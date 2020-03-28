@@ -9,15 +9,16 @@
 #include "semaphore.h"
 
 
-void sem_init(semaphore_t *sem, int resources)
+void sem_init(semaphore_t *sem)
 {
-  if (!resources)
+  if (!sem)
     {
       return;
     }
 
-  sem->resources = resources;
-  sem->counter = sem->resources;
+  sem->resources = 0;
+
+  //TODO owner ?
 }
 
 // wait()
@@ -31,33 +32,32 @@ SEMTAKE_T sem_take(semaphore_t *sem, int wait)
       return SEM_TAKE_ERROR;
     }
 
-    disable_interrupts();
-    if (sem->counter > 0)
-      {
-        sem->counter--;
-//        sem->changed++;
-        retval = SEM_TAKE_TOOK;
-      }
-    else
-      {
-        if (wait)
-          {
-            //todo add task id into waiting list
-            //enqueue(sem->queue, taskid);
-            g_running_task->state = TASK_STATE_SEM_WAIT;
-            retval = SEM_TAKE_WAIT;
-          }
-        else
-          {
-            retval = SEM_TAKE_BUSY;
-          }
-      }
-    enable_interrupts();
+  disable_interrupts();
+  if (sem->resources > 0)
+    {
+      sem->resources--;
+      retval = SEM_TAKE_TOOK;
+    }
+  else
+    {
+      if (wait)
+        {
+          //todo add task id into waiting list
+          //enqueue(sem->queue, taskid);
+          g_running_task->state = TASK_STATE_SEM_WAIT;
+          retval = SEM_TAKE_WAIT;
+        }
+      else
+        {
+          retval = SEM_TAKE_BUSY;
+        }
+    }
+  enable_interrupts();
 
   return retval;
 }
 
-
+// sem_give_crit ??
 // signal()
 // atomic
 SEMGIVE_T sem_give(semaphore_t *sem)
@@ -70,20 +70,11 @@ SEMGIVE_T sem_give(semaphore_t *sem)
     }
 
   disable_interrupts();
-  if (sem->counter < sem->resources)
-    {
-      sem->counter++;
-//      sem->changed++;
-      kput_event_crit(KERNEL_EVENT_SEM_GIVEN, 0);
-      //todo need to do something with task id here?? no I think...
-      //todo store owner ? only owner can give?
-      retval = SEM_GIVE_OK;
-    }
-  else
-    {
-      kput_event_crit(KERNEL_EVENT_SEM_GIVEN, 0);
-      retval = SEM_GIVE_FULL;
-    }
+  sem->resources++;
+  kput_event_crit(KERNEL_EVENT_SEM_GIVEN, (void*) sem);
+  //todo need to do something with task id here?? no I think...
+  //todo store owner ? only owner can give?
+  retval = SEM_GIVE_OK;
   enable_interrupts();
 
   return retval;

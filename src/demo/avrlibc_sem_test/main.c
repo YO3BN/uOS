@@ -90,7 +90,7 @@ void main_task(void *arg)
   int tid = task_getid();
   char * const tname = task_getname(0);
 
-  sem_init(&s, 1);
+  sem_init(&s);
 
   printf("################## Start ##################\n");
 
