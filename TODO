@@ -19,6 +19,7 @@
 - task destroy should enirely remove task from array.
 - tickless !!
 - remove exited tasks
+- Semaphore disabled/enabled by MACRO config
 - optimize binary code by creating inline functions for ISR, and other arch dependend code.
 - duplicate task names??
 - what to do if a task is destroyed but have memory allocated. who will perform the cleanup?
