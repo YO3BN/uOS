@@ -11,7 +11,6 @@
 
 #include "arch.h"
 #include "kernel_api.h"
-#include "semaphore.h"
 
 
 static void uart_init(void)
@@ -43,12 +42,12 @@ void first_task(void *arg)
 
   switch (sem_take(&s, 1))
   {
-    case SEM_TAKE_TOOK:
+    case SEM_STATUS_TOOK:
       printf("Tick: %lu => Task: %d [%s]=> SEM GIVE.\n", time, tid, tname);
       sem_give(&p);
       return;
 
-    case SEM_TAKE_WAIT:
+    case SEM_STATUS_WAIT:
       printf("Tick: %lu => Task: %d [%s]=> SEM_WAIT.\n", time, tid, tname);
       return;
 
@@ -95,13 +94,13 @@ void third_task(void *arg)
 
   printf("Tick: %lu => Task: %d [%s]=> ALIVE.\n", time, tid, tname);
 
-  switch (sem_take(&p, 1))
+  switch (sem_take(&p, SEM_WAIT_FOREVER))
   {
-    case SEM_TAKE_TOOK:
+    case SEM_STATUS_TOOK:
       printf("Tick: %lu => Task: %d [%s]=> WORK TODO.\n", time, tid, tname);
       return;
 
-    case SEM_TAKE_WAIT:
+    case SEM_STATUS_WAIT:
       printf("Tick: %lu => Task: %d [%s]=> SEM_WAIT.\n", time, tid, tname);
       return;
 
