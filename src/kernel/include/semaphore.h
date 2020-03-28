@@ -2,16 +2,12 @@
 
 //todo add header flag defines
 
-#define CONFIG_SEM_MAX_TASK_QUEUE 10
-
+#include "config.h"
 
 typedef volatile struct
 {
   int resources;
-//  int counter;
-//  int changed;
-//  int owner;
-//  int task_queue[CONFIG_SEM_MAX_TASK_QUEUE];
+  unsigned tasks[CONFIG_MAX_TASKS];
 } semaphore_t;
 
 
@@ -43,3 +39,5 @@ int semaphores(kernel_event_t *event);
 SEMGIVE_T sem_give(semaphore_t *sem);
 SEMTAKE_T sem_take(semaphore_t *sem, int wait);
 void sem_init(semaphore_t *sem);
+int sem_pop_waitingtask(semaphore_t *sem, unsigned tidx);
+void sem_giveISR(semaphore_t *sem);

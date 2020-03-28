@@ -9,6 +9,33 @@
 #include "semaphore.h"
 
 
+static void sem_add_waitingtask(semaphore_t *sem, unsigned tidx)
+{
+  if (!sem)
+    {
+      return;
+    }
+
+  sem->tasks[tidx] = 1;
+}
+
+
+int sem_pop_waitingtask(semaphore_t *sem, unsigned tidx)
+{
+  unsigned retval = 0;
+
+  if (!sem)
+    {
+      return retval;
+    }
+
+  retval = sem->tasks[tidx];
+  sem->tasks[tidx] = 0;
+
+  return retval;
+}
+
+
 void sem_init(semaphore_t *sem)
 {
   if (!sem)
@@ -17,15 +44,14 @@ void sem_init(semaphore_t *sem)
     }
 
   sem->resources = 0;
-
-  //TODO owner ?
+  kmemset((void*) sem->tasks, 0, sizeof(sem->tasks));
 }
 
-// wait()
-// atomic
+
 SEMTAKE_T sem_take(semaphore_t *sem, int wait)
 {
   SEMTAKE_T retval = SEM_TAKE_ERROR;
+  unsigned tidx = g_running_task->idx;
 
   if (!sem)
     {
@@ -42,8 +68,7 @@ SEMTAKE_T sem_take(semaphore_t *sem, int wait)
     {
       if (wait)
         {
-          //todo add task id into waiting list
-          //enqueue(sem->queue, taskid);
+          sem_add_waitingtask(sem, tidx);
           g_running_task->state = TASK_STATE_SEM_WAIT;
           retval = SEM_TAKE_WAIT;
         }
@@ -57,14 +82,23 @@ SEMTAKE_T sem_take(semaphore_t *sem, int wait)
   return retval;
 }
 
-// sem_give_crit ??
-// signal()
-// atomic
+void sem_giveISR(semaphore_t *sem)
+{
+  if (!sem)
+    {
+      return;
+    }
+
+  sem->resources++;
+  kput_event_crit(KERNEL_EVENT_SEM_GIVEN, (void*) sem);
+}
+
+
 SEMGIVE_T sem_give(semaphore_t *sem)
 {
   SEMGIVE_T retval = SEM_GIVE_ERROR;
 
-  if (!sem/* || sem->owner != task_getid()*/)
+  if (!sem)
     {
       return SEM_GIVE_ERROR;
     }
@@ -72,8 +106,6 @@ SEMGIVE_T sem_give(semaphore_t *sem)
   disable_interrupts();
   sem->resources++;
   kput_event_crit(KERNEL_EVENT_SEM_GIVEN, (void*) sem);
-  //todo need to do something with task id here?? no I think...
-  //todo store owner ? only owner can give?
   retval = SEM_GIVE_OK;
   enable_interrupts();
 
@@ -83,7 +115,7 @@ SEMGIVE_T sem_give(semaphore_t *sem)
 
 int semaphores(kernel_event_t *event)
 {
-  //todo implement semaphore processing. Processing once ==> changed--; remove tid from queue
+  /* TODO: Nothing to process here yet. */
 
   return 0;
 }
