@@ -31,7 +31,9 @@
  *
  * Input Parameters:
  *    type - Event type.
- *    data - Optional data.
+ *    data - Pointer to optional data.
+ *           Or it can be casted to other type smaller or equal than void
+ *           pointer. (char, int, void*).
  *
  * Returned Value:
  *    none
@@ -41,18 +43,20 @@
  *
  ****************************************************************************/
 
-void kput_event_crit(unsigned char type, unsigned char data);
+void kput_event_crit(unsigned char type, void * data);
 
 
 /****************************************************************************
- * Name: kput_event_nocrit
+ * Name: kput_event
  *
  * Description:
  *    Insert new event in the circular buffer (no critical).
  *
  * Input Parameters:
  *    type - Event type.
- *    data - Optional data.
+ *    data - Pointer to optional data.
+ *           Or it can be casted to other type smaller or equal than void
+ *           pointer. (char, int, void*).
  *
  * Returned Value:
  *    none
@@ -62,7 +66,7 @@ void kput_event_crit(unsigned char type, unsigned char data);
  *
  ****************************************************************************/
 
-void kput_event_nocrit(unsigned char type, unsigned char data);
+void kput_event(unsigned char type, void * data);
 
 
 /****************************************************************************

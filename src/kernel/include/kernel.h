@@ -25,10 +25,10 @@ typedef enum
 } kernel_event_type_t;
 
 
-typedef struct
+typedef volatile struct
 {
   unsigned char type;
-  unsigned char data;
+  void * data;
 } kernel_event_t;
 
 

@@ -75,20 +75,29 @@ static int kget_event(kernel_event_t *event)
       return ret;
     }
 
-  /* Clear previous event. */
-
-  kmemset(event, 0, sizeof(kernel_event_t));
-
   /* Enter critical and check for available event. */
 
   disable_interrupts();
   if (g_kevent_buffer.used_size > 0)
     {
-      event->type = g_kevent_buffer.event[g_kevent_buffer.read_idx].type;
-      event->data = g_kevent_buffer.event[g_kevent_buffer.read_idx].data;
+      /* Copy event from kernel buffer in order to be used locally. */
+
+      kmemcpy((void*) event,
+              (void*) &g_kevent_buffer.event[g_kevent_buffer.read_idx],
+              sizeof(kernel_event_t));
+
+      /* Decrease used slots in buffer.
+       *
+       * NOTE: The event content is not removed from buffer.
+       * FIXME: Not sure if removing its content is really required.
+       */
 
       g_kevent_buffer.used_size--;
       g_kevent_buffer.read_idx++;
+
+      /* Buffer overlapping.
+       * TODO: Use modulo % if is more efficient.
+       */
 
       if (g_kevent_buffer.read_idx >= CONFIG_MAX_EVENTS)
         {
@@ -138,6 +147,10 @@ static void kconsume_event(kernel_event_t *event)
       work_todo |= scheduler(event);
     }
   while (work_todo);
+
+  /* Clear event. */
+
+  kmemset((void*) event, 0, sizeof(kernel_event_t));
 }
 
 
@@ -217,7 +230,9 @@ static void kernel_event_loop(void)
  *
  * Input Parameters:
  *    type - Event type.
- *    data - Optional data.
+ *    data - Pointer to optional data.
+ *           Or it can be casted to other type smaller or equal than void
+ *           pointer. (char, int, void*).
  *
  * Returned Value:
  *    none
@@ -227,7 +242,7 @@ static void kernel_event_loop(void)
  *
  ****************************************************************************/
 
-void kput_event_crit(unsigned char type, unsigned char data)
+void kput_event_crit(unsigned char type, void * data)
 {
   if (g_kevent_buffer.used_size >= CONFIG_MAX_EVENTS)
     {
@@ -238,6 +253,10 @@ void kput_event_crit(unsigned char type, unsigned char data)
   g_kevent_buffer.event[g_kevent_buffer.write_idx].data = data;
   g_kevent_buffer.used_size++;
   g_kevent_buffer.write_idx++;
+
+  /* Buffer overlapping.
+   * TODO: Use modulo % if is more efficient.
+   */
 
   if (g_kevent_buffer.write_idx >= CONFIG_MAX_EVENTS)
     {
@@ -247,14 +266,16 @@ void kput_event_crit(unsigned char type, unsigned char data)
 
 
 /****************************************************************************
- * Name: kput_event_nocrit
+ * Name: kput_event
  *
  * Description:
  *    Insert new event in the circular buffer (no critical).
  *
  * Input Parameters:
  *    type - Event type.
- *    data - Optional data.
+ *    data - Pointer to optional data.
+ *           Or it can be casted to other type smaller or equal than void
+ *           pointer. (char, int, void*).
  *
  * Returned Value:
  *    none
@@ -264,25 +285,10 @@ void kput_event_crit(unsigned char type, unsigned char data)
  *
  ****************************************************************************/
 
-void kput_event_nocrit(unsigned char type, unsigned char data)
+void kput_event(unsigned char type, void * data)
 {
   disable_interrupts();
-
-  if (g_kevent_buffer.used_size >= CONFIG_MAX_EVENTS)
-    {
-      return;
-    }
-
-  g_kevent_buffer.event[g_kevent_buffer.write_idx].type = type;
-  g_kevent_buffer.event[g_kevent_buffer.write_idx].data = data;
-  g_kevent_buffer.used_size++;
-  g_kevent_buffer.write_idx++;
-
-  if (g_kevent_buffer.write_idx >= CONFIG_MAX_EVENTS)
-    {
-      g_kevent_buffer.write_idx = 0;
-    }
-
+  kput_event_crit(type, data);
   enable_interrupts();
 }
 
