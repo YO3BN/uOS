@@ -145,6 +145,7 @@ static void kconsume_event(kernel_event_t *event)
 
       /* Add other kernel submodules here (io, sem, etc.). */
 
+      work_todo |= semaphores(event);
       work_todo |= scheduler(event);
     }
   while (work_todo);
@@ -328,6 +329,7 @@ void kernel_init(void)
  *
  * Description:
  *    Run the kernel.
+ *    Call this function at the end of the main function.
  *
  * Input Parameters:
  *    None

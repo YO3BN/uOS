@@ -19,41 +19,6 @@
 
 
 /****************************************************************************
- * Name: sem_pop_waitingtask
- *
- * Description:
- *  Check and remove if a task is waiting for this semaphore.
- *
- * Input Parameters:
- *  sem - Semaphore pointer.
- *  tidx - Task idx. Used to map the task to semaphore waiting queue in O(1).
- *
- * Returned Value:
- *  1 - If the task is waiting for this semaphore.
- *  0 - Otherwise.
- *
- * Assumptions:
- *  Called from Scheduler.
- *
- ****************************************************************************/
-
-int sem_pop_waitingtask(semaphore_t *sem, unsigned tidx)
-{
-  unsigned retval = 0;
-
-  if (!sem)
-    {
-      return retval;
-    }
-
-  retval = sem->tasks[tidx];
-  sem->tasks[tidx] = 0;
-
-  return retval;
-}
-
-
-/****************************************************************************
  * Name: sem_init
  *
  * Description:
@@ -77,7 +42,9 @@ void sem_init(semaphore_t *sem)
     }
 
   sem->resources = 0;
-  kmemset((void*) sem->tasks, 0, sizeof(sem->tasks));
+  kmemset((void*) sem->task_id, 0, CONFIG_MAX_TASKS);
+  kqueue_init((queue_t*) &sem->waiting_tasks, (int*) sem->task_id,
+              sizeof(sem->task_id), sizeof(sem->task_id[0]));
 }
 
 
@@ -110,9 +77,9 @@ void sem_init(semaphore_t *sem)
 SEM_STATUS_T sem_take(semaphore_t *sem, SEM_WAIT_T wait)
 {
   SEM_STATUS_T retval = SEM_STATUS_ERROR;
-  unsigned tidx = g_running_task->idx;
+  task_t *task = g_running_task;
 
-  if (!sem)
+  if (!sem || !task)
     {
       return retval;
     }
@@ -127,11 +94,8 @@ SEM_STATUS_T sem_take(semaphore_t *sem, SEM_WAIT_T wait)
     {
       if (wait)
         {
-          /* Map the task to waiting queue in O(1), using task idx. */
-
-          sem->tasks[tidx] = 1;
-
-          g_running_task->state = TASK_STATE_SEM_WAIT;
+          kenqueue((queue_t*) &sem->waiting_tasks, &task->tid);
+          task->state = TASK_STATE_SEM_WAIT;
           retval = SEM_STATUS_WAIT;
         }
       else
@@ -205,6 +169,83 @@ SEM_STATUS_T sem_give(semaphore_t *sem)
   kput_event_crit(KERNEL_EVENT_SEM_GIVEN, (void*) sem);
   retval = SEM_STATUS_OK;
   enable_interrupts();
+
+  return retval;
+}
+
+
+/****************************************************************************
+ * Name: semaphores
+ *
+ * Description:
+ *  Process events related to semaphores.
+ *
+ * Input Parameters:
+ *  event - Event from kernel.
+ *
+ * Returned Value:
+ *  1 - If there is further work to do by kernel.
+ *  0 - If there is no further work to do.
+ *
+ * Assumptions:
+ *  Called from kernel loop only.
+ *
+ ****************************************************************************/
+
+int semaphores(kernel_event_t *event)
+{
+  semaphore_t *sem;
+  task_t *task = NULL;
+  unsigned tid = 0;
+  int retval;
+
+  if (!event)
+    {
+      return 0;
+    }
+
+  if (event->type != KERNEL_EVENT_SEM_GIVEN)
+    {
+      return 0;
+    }
+
+  sem = (semaphore_t *) event->data;
+  if (!sem)
+    {
+      return 0;
+    }
+
+  /* Get the waiting task for this semaphore. */
+
+  disable_interrupts();
+  retval = kdequeue((queue_t*) &sem->waiting_tasks, &tid);
+  enable_interrupts();
+
+  /* If there is nothing in the waiting queue, then some module gave the
+   * semaphore and none is waiting for it.
+   */
+
+  if (retval)
+    {
+      task = task_getby_id(tid);
+
+      /* Check if task is still alive. */
+
+      if (task)
+        {
+          task->state = TASK_STATE_READY;
+        }
+    }
+
+  /* Clear this event, even if the task was found or not.
+   * This will prevent the kernel to enter into a never-ending loop by
+   * processing it over and over again.
+   *
+   * TODO: Not sure if this is the correct solution. Please, find a better
+   * approach if possible. Maybe mark it as consumed?
+   */
+
+  kmemset((void*) event, 0, sizeof(kernel_event_t));
 
   return retval;
 }

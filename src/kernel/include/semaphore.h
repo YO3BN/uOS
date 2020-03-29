@@ -3,29 +3,41 @@
 #ifndef SEMAPHORE_H_
 #define SEMAPHORE_H_
 
+
+/****************************************************************************
+ * Included Files.
+ ****************************************************************************/
+
 #include "config.h"
+#include "klib.h"
+
+/****************************************************************************
+ * Defined Types.
+ ****************************************************************************/
 
 
 typedef volatile struct
 {
-  int resources;
-  unsigned tasks[CONFIG_MAX_TASKS];
+  int resources;                      /* Free resources into the semaphore. */
+  queue_t waiting_tasks;              /* Queue object for task IDs array. */
+  unsigned task_id[CONFIG_MAX_TASKS]; /* Array storing task IDs. */
 } semaphore_t;
 
 
 typedef enum
 {
-  SEM_STATUS_ERROR = 0,
-  SEM_STATUS_OK,
-  SEM_STATUS_BUSY,
-  SEM_STATUS_WAIT,
-  SEM_STATUS_TOOK,
+  SEM_STATUS_ERROR = 0, /* Sem. function returned error. */
+  SEM_STATUS_OK,        /* Sem. function returned success. */
+  SEM_STATUS_TOOK,      /* Sem. took, resource is free, can continue. */
+  SEM_STATUS_WAIT,      /* Sem. is busy, no resource available, should wait. */
+  SEM_STATUS_BUSY,      /* When using no waiting, this indicates sem. busy. */
 } SEM_STATUS_T;
+
 
 typedef enum
 {
-  SEM_WAIT_NO = 0,
-  SEM_WAIT_FOREVER,
+  SEM_WAIT_NO = 0,  /* No waiting, just try to take the semaphore. */
+  SEM_WAIT_FOREVER, /* Waiting forever for the semaphore. */
 } SEM_WAIT_T;
 
 
@@ -33,28 +45,6 @@ typedef enum
 /****************************************************************************
  * Public function prototypes.
  ****************************************************************************/
-
-
-/****************************************************************************
- * Name: sem_pop_waitingtask
- *
- * Description:
- *  Check and remove if a task is waiting for this semaphore.
- *
- * Input Parameters:
- *  sem - Semaphore pointer.
- *  tidx - Task idx. Used to map the task to semaphore waiting queue in O(1).
- *
- * Returned Value:
- *  1 - If the task is waiting for this semaphore.
- *  0 - Otherwise.
- *
- * Assumptions:
- *  Called from Scheduler.
- *
- ****************************************************************************/
-
-int sem_pop_waitingtask(semaphore_t *sem, unsigned tidx);
 
 
 /****************************************************************************
@@ -143,5 +133,27 @@ void sem_giveISR(semaphore_t *sem);
  ****************************************************************************/
 
 SEM_STATUS_T sem_give(semaphore_t *sem);
+
+
+/****************************************************************************
+ * Name: semaphores
+ *
+ * Description:
+ *  Process events related to semaphores.
+ *
+ * Input Parameters:
+ *  event - Event from kernel.
+ *
+ * Returned Value:
+ *  1 - If there is further work to do by kernel.
+ *  0 - If there is no further work to do.
+ *
+ * Assumptions:
+ *  Called from kernel loop only.
+ *
+ ****************************************************************************/
+
+int semaphores(kernel_event_t *event);
+
 
 #endif /* SEMAPHORE_H_ */

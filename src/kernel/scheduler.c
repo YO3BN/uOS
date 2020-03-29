@@ -93,29 +93,14 @@ int scheduler(kernel_event_t *event)
                  }
                break;
 
-
+/*
             case TASK_STATE_IO_WAIT:
                if (event->type == KERNEL_EVENT_IO_RCVD)
                  {
                    //TODO check_io_for_this_task();
                    //TODO if yes, then set it ready to run and set work to do.
                  }
-               break;
-
-
-            case TASK_STATE_SEM_WAIT:
-               if (event->type == KERNEL_EVENT_SEM_GIVEN)
-                 {
-                   /* Check if this tasks is waiting for this semaphore. */
-
-                   if (sem_pop_waitingtask((semaphore_t*) event->data,
-                                           task->idx))
-                     {
-                       task->state = TASK_STATE_READY;
-                       work_todo = 1;
-                     }
-                 }
-               break;
+               break;*/
 
 
             case TASK_STATE_RESUMED:
