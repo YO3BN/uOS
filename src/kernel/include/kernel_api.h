@@ -95,6 +95,7 @@ void kernel_init(void);
  *
  * Description:
  *    Run the kernel.
+ *    Call this function at the end of the main function.
  *
  * Input Parameters:
  *    None
@@ -387,6 +388,78 @@ void sem_giveISR(semaphore_t *sem);
  ****************************************************************************/
 
 SEM_STATUS_T sem_give(semaphore_t *sem);
+
+
+/****************************************************************************
+ * Name: kqueue_init
+ *
+ * Description:
+ *    Queue initialization.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *    array - Pointer to storage array.
+ *    array_size - The size of storage array.
+ *    element_size - The size of one element in array.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - If error.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+int kqueue_init
+    (queue_t *queue, void *array, int array_size, int element_size);
+
+
+/****************************************************************************
+ * Name: kenqueue
+ *
+ * Description:
+ *    Insert one element in storage array.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *    indata - Pointer to data to insert.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - If error.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+int kenqueue(queue_t *queue, void *indata);
+
+
+/****************************************************************************
+ * Name: kdequeue
+ *
+ * Description:
+ *    Retrieve one element in storage array.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *    outdata - Pointer to variable where data will be written.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - If error.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+int kdequeue(queue_t *queue, void *outdata);
 
 
 //TODO document these

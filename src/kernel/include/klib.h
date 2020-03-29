@@ -9,6 +9,11 @@
 #define SRC_KERNEL_INCLUDE_KLIB_H_
 
 
+/****************************************************************************
+ * Public types.
+ ****************************************************************************/
+
+
 /* Since the kernel does not contain any external headers,
  * the NULL should be defined.
  */
@@ -16,6 +21,24 @@
 #ifndef NULL
 #  define NULL ((void*)0)
 #endif
+
+
+/* Queue object used to manage the array storage. */
+
+typedef struct
+{
+  void *array_ptr;
+  void *read_ptr;
+  void *write_ptr;
+  int array_size;
+  int used_size;
+  int element_size;
+} queue_t;
+
+
+/****************************************************************************
+ * Public function prototypes.
+ ****************************************************************************/
 
 
 /****************************************************************************
@@ -125,6 +148,78 @@ void kstrncpy(char *dst, const char *src, unsigned int size);
  ****************************************************************************/
 
 int kstreq(const char *str1, const char *str2);
+
+
+/****************************************************************************
+ * Name: kqueue_init
+ *
+ * Description:
+ *    Queue initialization.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *    array - Pointer to storage array.
+ *    array_size - The size of storage array.
+ *    element_size - The size of one element in array.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - If error.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+int kqueue_init
+    (queue_t *queue, void *array, int array_size, int element_size);
+
+
+/****************************************************************************
+ * Name: kenqueue
+ *
+ * Description:
+ *    Insert one element in storage array.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *    indata - Pointer to data to insert.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - If error.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+int kenqueue(queue_t *queue, void *indata);
+
+
+/****************************************************************************
+ * Name: kdequeue
+ *
+ * Description:
+ *    Retrieve one element in storage array.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *    outdata - Pointer to variable where data will be written.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - If error.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+int kdequeue(queue_t *queue, void *outdata);
 
 
 #endif /* SRC_KERNEL_INCLUDE_KLIB_H_ */

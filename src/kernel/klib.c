@@ -196,3 +196,167 @@ int kstreq(const char *str1, const char *str2)
 
   return 1;
 }
+
+
+/****************************************************************************
+ * Name: kqueue_init
+ *
+ * Description:
+ *    Queue initialization.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *    array - Pointer to storage array.
+ *    array_size - The size of storage array.
+ *    element_size - The size of one element in array.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - If error.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+int kqueue_init
+    (queue_t *queue, void *array, int array_size, int element_size)
+{
+  if (!queue || !array || !array_size || !element_size)
+    {
+      return 0;
+    }
+
+  queue->array_ptr    = array;
+  queue->read_ptr     = array;
+  queue->write_ptr    = array;
+  queue->array_size   = array_size;
+  queue->element_size = element_size;
+  queue->used_size    = 0;
+
+  return 1;
+}
+
+
+/****************************************************************************
+ * Name: kenqueue
+ *
+ * Description:
+ *    Insert one element in storage array.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *    indata - Pointer to data to insert.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - If error.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+int kenqueue(queue_t *queue, void *indata)
+{
+  if (!queue || !indata)
+    {
+      return 0;
+    }
+
+  /* Check if the array is full. */
+
+  if (queue->used_size >= queue->array_size)
+    {
+      return 0;
+    }
+
+  /* Copy data to the array. */
+
+  kmemcpy(queue->write_ptr, indata, queue->element_size);
+
+  /* Increase the write pointer to the next element in array. */
+
+  queue->write_ptr += queue->element_size;
+
+  /* Since new data was inserted, the used size is increased. */
+
+  queue->used_size++;
+
+  /* Check for array boundary and reset the pointer to the beginning
+   * of the array.
+   *
+   * TODO: Verify if modulo % operator is more efficient here.
+   */
+
+  if (queue->write_ptr >= (queue->array_ptr + queue->array_size))
+    {
+      queue->write_ptr = queue->array_ptr;
+    }
+
+  return 1;
+}
+
+
+/****************************************************************************
+ * Name: kdequeue
+ *
+ * Description:
+ *    Retrieve one element in storage array.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *    outdata - Pointer to variable where data will be written.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - If error.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+int kdequeue(queue_t *queue, void *outdata)
+{
+  if (!queue || !outdata)
+    {
+      return 0;
+    }
+
+  /* Check if array have data. */
+
+  if (queue->used_size > 0)
+    {
+      /* Copy data to variable pointed by outdata.
+       *
+       * NOTE: The data is not removed from array. It will be overwritten.
+       */
+
+      kmemcpy(outdata, queue->read_ptr, queue->element_size);
+
+      /* Increase read pointer to the next element in array. */
+
+      queue->read_ptr += queue->element_size;
+
+      /* Since data was retrieved from array, decrease usage, too. */
+
+      queue->used_size--;
+
+      /* Check for array boundary and reset the pointer to the beginning
+       * of the array.
+       *
+       * TODO: Verify if modulo % operator is more efficient here.
+       */
+
+      if (queue->read_ptr >= (queue->array_ptr + queue->array_size))
+        {
+          queue->read_ptr = queue->array_ptr;
+        }
+      return 1;
+    }
+  return 0;
+}
