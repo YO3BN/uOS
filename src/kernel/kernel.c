@@ -135,12 +135,14 @@ static int kget_event(kernel_event_t *event)
 
 static void kconsume_event(kernel_event_t *event)
 {
-  int work_todo = 0;
+  int work_todo;
 
   /* Finish all possible work for this event. */
 
   do
     {
+      work_todo = 0;
+
       /* Add other kernel submodules here (io, sem, etc.). */
 
       work_todo |= scheduler(event);
