@@ -157,20 +157,17 @@ void sem_giveISR(semaphore_t *sem)
 
 SEM_STATUS_T sem_give(semaphore_t *sem)
 {
-  SEM_STATUS_T retval = SEM_STATUS_ERROR;
-
   if (!sem)
     {
-      return retval;
+      return SEM_STATUS_ERROR;
     }
 
   disable_interrupts();
   sem->resources++;
   kput_event_crit(KERNEL_EVENT_SEM_GIVEN, (void*) sem);
-  retval = SEM_STATUS_OK;
   enable_interrupts();
 
-  return retval;
+  return SEM_STATUS_OK;
 }
 
 
