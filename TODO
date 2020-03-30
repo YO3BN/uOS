@@ -17,7 +17,11 @@
 - task yeld ??
 - semaphore owner??
 - task destroy should enirely remove task from array.
+- edit defined flags in headers.
 - tickless !!
+- Capitalize words in comments like this: Public Functions. / Private Types.
+- really needed critical sections on some modules (sem) ??
+- check function description for Input/Output Parameters typos.
 - remove exited tasks
 - Semaphore disabled/enabled by MACRO config
 - optimize binary code by creating inline functions for ISR, and other arch dependend code.
@@ -27,6 +31,9 @@
 - analize if this statement: g_kevent_buffer.read_idx >= CONFIG_MAX_EVENTS is less efficient than modulo %
 - analize if kget_event should return a pointer to event position in kevent buffer, or it should copy the event as it is now.
 - static tasks use static variables for context, dynamic or duplicate tasks should use dynamic memory.
-- code
-- debug
-- etc
+- what happens if a task is waiting for a semaphore and gets killed?? queues in semaphores and other resources.
+- implement tasks on linked list over array in order to avoid array defragmenting.
+- use klib queue for kernel events?
+- implement task return raw status; scheduler taking care.
+- implement task_waittask()??
+- implement stdio buffering ?
