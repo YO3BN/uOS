@@ -88,6 +88,7 @@ int task_create(const char *task_name, void (*entry_point)(void*), void *arg)
   g_task_array[i].tid = i + 1; // TODO FIXME overflow here
   g_task_array[i].state = TASK_STATE_READY;
   g_task_array[i].entry_point = entry_point;
+  g_task_array[i].arg = arg;
   kstrncpy(g_task_array[i].name, task_name, CONFIG_TASK_MAX_NAME + 1);
 
   return 1;
