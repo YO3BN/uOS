@@ -96,12 +96,12 @@ task(void *arg)
 Working with non-blocking functions:
 - Since, there are no actually blocking functions, as a simple rule of thumb,
   each "blocking" function will return 0 when they are supposed to wait for an event.
-- Therefore when a functon which is supposed to block the current task, it will
+- Therefore when a function which is supposed to block the current task, it will
   return 0, the caller also need to return 0, no other code modifications in between.
 - This condition will create a chain of returning functions from the top down to
   the bottom, returning back to the scheduler, which will choose to run other
-  ready task. Thus, the stack is poped and pushed like a context switch in a natural
-  way by the compiler, but the task state must be keeped the same in order to enter
+  ready task. Thus, the stack is popped and pushed like a context switch in a natural
+  way by the compiler, but the task state must be kept the same in order to enter
   in the same position again.
 - A MACRO helper was defined in order to ease the coding work, as it follows.
 

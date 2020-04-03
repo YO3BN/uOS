@@ -23,6 +23,66 @@
 #endif
 
 
+/*
+ * Working with non-blocking functions:
+ *
+ * - Since, there are no actually blocking functions, as a simple rule of
+ *   thumb, each "blocking" function will return 0 when they are supposed to
+ *   wait for an event.
+ *
+ * - Therefore when a function which is supposed to block the current task, it
+ *   will return 0, the caller also need to return 0, no other code
+ *   modifications in between.
+ *
+ * - This condition will create a chain of returning functions from the top
+ *   down to the bottom, returning back to the scheduler, which will choose
+ *   to run other ready task. Thus, the stack is popped and pushed like a
+ *   context switch in a natural way by the compiler, but the task state
+ *   must be kept the same in order to enter in the same position again.
+ *
+ *
+ *                ...
+ *                ret = sem_take(&rx_irq, SEM_WAIT_FOREVER);
+ *                if (ret == 0)
+ *                  {
+ *                    return 0;
+ *                  }
+ *                if (ret == SEM_STATUS_ERROR)
+ *                  {
+ *                    Semaphore function error.
+ *                    ...
+ *                  }
+ *                Do work.
+ *                ...
+ *
+ *
+ *  - A MACRO helper was defined in order to ease the coding work, as it
+ *    follows.
+ *  - Using the BLOCKING MACRO:
+ *
+ *
+ *              ...
+ *              BLOCKING(ret, sem_take(&rx_irq, SEM_WAIT_FOREVER));
+ *              if (ret == SEM_STATUS_ERROR)
+ *                {
+ *                  Semaphore function error.
+ *                  ...
+ *                }
+ *              Do work.
+ *              ...
+ *
+ */
+
+#define BLOCKING(ret,...) \
+{                         \
+  ret = (__VA_ARGS__);    \
+  if (!ret)               \
+    {                     \
+      return 0;           \
+    }                     \
+}
+
+
 /* Queue object used to manage the array storage. */
 
 typedef struct
