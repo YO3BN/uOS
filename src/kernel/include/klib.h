@@ -222,4 +222,71 @@ int kenqueue(queue_t *queue, void *indata);
 int kdequeue(queue_t *queue, void *outdata);
 
 
+/****************************************************************************
+ * Name: kqueue_get_usedsize
+ *
+ * Description:
+ *    Get the number of elements stored into the queue.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *
+ *
+ * Returned Value:
+ *    Number of elements stored in the queue are returned.
+ *    -1 - If error.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+int kqueue_get_usedsize(queue_t *queue);
+
+
+/****************************************************************************
+ * Name: kqueue_get_freesize
+ *
+ * Description:
+ *    Get the number of unused elements in the queue.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *
+ * Returned Value:
+ *    Number of unused elements in the queue are returned.
+ *    -1 - If error.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+int kqueue_get_freesize(queue_t *queue);
+
+
+/****************************************************************************
+ * Name: kqueue_destroy
+ *
+ * Description:
+ *    Queue de-initialization.
+ *    Clear the queue parameters, pointers, etc.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *
+ * Returned Value:
+ *    none
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+void kqueue_destroy(queue_t *queue);
+
+
 #endif /* SRC_KERNEL_INCLUDE_KLIB_H_ */

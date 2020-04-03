@@ -360,3 +360,98 @@ int kdequeue(queue_t *queue, void *outdata)
     }
   return 0;
 }
+
+
+/****************************************************************************
+ * Name: kqueue_get_usedsize
+ *
+ * Description:
+ *    Get the number of elements stored into the queue.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *
+ *
+ * Returned Value:
+ *    Number of elements stored in the queue are returned.
+ *    -1 - If error.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+int kqueue_get_usedsize(queue_t *queue)
+{
+  if (!queue)
+    {
+      return -1;
+    }
+
+  return queue->used_size;
+}
+
+
+/****************************************************************************
+ * Name: kqueue_get_freesize
+ *
+ * Description:
+ *    Get the number of unused elements in the queue.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *
+ * Returned Value:
+ *    Number of unused elements in the queue are returned.
+ *    -1 - If error.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+int kqueue_get_freesize(queue_t *queue)
+{
+    if (!queue)
+    {
+      return -1;
+    }
+
+    return (queue->array_size - queue->used_size);
+}
+
+
+/****************************************************************************
+ * Name: kqueue_destroy
+ *
+ * Description:
+ *    Queue de-initialization.
+ *    Clear the queue parameters, pointers, etc.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *
+ * Returned Value:
+ *    none
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+void kqueue_destroy(queue_t *queue)
+{
+  if (queue)
+    {
+      queue->array_ptr    = NULL;
+      queue->read_ptr     = NULL;
+      queue->write_ptr    = NULL;
+      queue->array_size   = 0;
+      queue->element_size = 0;
+      queue->used_size    = 0;
+    }
+}
+
