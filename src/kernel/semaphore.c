@@ -52,6 +52,7 @@ void sem_init(semaphore_t *sem)
  * Name: sem_take
  *
  * Description:
+ *  Block the current task till the specified semaphore or resource is given.
  *  Take the semaphore using a waiting type.
  *  This function does not block, but it will return a specific state for
  *  waiting.
@@ -167,7 +168,7 @@ SEM_STATUS_T sem_give(semaphore_t *sem)
   kput_event_crit(KERNEL_EVENT_SEM_GIVEN, (void*) sem);
   enable_interrupts();
 
-  return SEM_STATUS_OK;
+  return SEM_STATUS_SUCCESS;
 }
 
 

@@ -9,6 +9,7 @@
  ****************************************************************************/
 
 #include "config.h"
+#include "kernel.h"
 #include "klib.h"
 
 /****************************************************************************
@@ -26,10 +27,10 @@ typedef volatile struct
 
 typedef enum
 {
-  SEM_STATUS_ERROR = 0, /* Sem. function returned error. */
-  SEM_STATUS_OK,        /* Sem. function returned success. */
+  SEM_STATUS_WAIT = 0,  /* Sem. is busy, no resource available, should wait. */
+  SEM_STATUS_ERROR,     /* Sem. function returned error. */
+  SEM_STATUS_SUCCESS,   /* Sem. function returned success. */
   SEM_STATUS_TOOK,      /* Sem. took, resource is free, can continue. */
-  SEM_STATUS_WAIT,      /* Sem. is busy, no resource available, should wait. */
   SEM_STATUS_BUSY,      /* When using no waiting, this indicates sem. busy. */
 } SEM_STATUS_T;
 
