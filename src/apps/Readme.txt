@@ -1,5 +1,5 @@
 apps/
 
-- This folder contains arch. independent source code for generic tools.
-- Tools like shell, commands, servers, clients, etc.
-- Thus, no main functions here, only builtin apps.
+- This folder contains high-level, independent code.
+- Apps. contains examples, utilities, shell, commands,
+  servers, clients, etc.

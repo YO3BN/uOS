@@ -2,7 +2,6 @@
 - make overall build system
 - deny external access to kernel variables / accessible only by functions.
 - produce / consume systicks, start failsafe context-switch kernel superviser
-- maybe in future remove demo and leave only apps
 - tid different of idx
 - event subscribe for multiple modules/tasks
 - implement archint type (fast integer)
@@ -37,3 +36,4 @@
 - implement task return raw status; scheduler taking care.
 - implement task_waittask()??
 - implement stdio buffering ?
+- latest errno value per task ??
