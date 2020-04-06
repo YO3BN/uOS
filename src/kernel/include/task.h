@@ -8,6 +8,11 @@
 #ifndef TASK_H_
 #define TASK_H_
 
+#include <avr/io.h>
+#include <avr/common.h>
+#include <inttypes.h>
+#include <avr/io.h>
+#include <avr/interrupt.h>
 
 #include "config.h"
 
@@ -33,6 +38,9 @@ typedef struct
   void *saved_data;
   void *entry_point;
 
+  unsigned char sreg;
+  unsigned char *sp;
+
   unsigned int tid;
   unsigned int idx;
   unsigned int hit;
@@ -45,6 +53,11 @@ typedef struct
 
 
 extern task_t *g_running_task;
+extern task_t g_task_array[];
+
+extern int current_running;
+
+
 
 
 /****************************************************************************

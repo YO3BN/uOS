@@ -25,19 +25,183 @@
  ****************************************************************************/
 
 task_t *g_running_task;
-
+int current_running = 1;
 
 /****************************************************************************
  * Private globals.
  ****************************************************************************/
 
-static task_t g_task_array[CONFIG_MAX_TASKS];
-
+task_t g_task_array[CONFIG_MAX_TASKS];
+volatile unsigned char *stack_global;
 
 /****************************************************************************
  * Public functions.
  ****************************************************************************/
 
+void __attribute__((naked)) yield(void)
+{
+  asm volatile (
+      "push r31\n\t"
+      "push r30\n\t"
+      "push r29\n\t"
+      "push r28\n\t"
+      "push r27\n\t"
+      "push r26\n\t"
+      "push r25\n\t"
+      "push r24\n\t"
+      "push r23\n\t"
+      "push r22\n\t"
+      "push r21\n\t"
+      "push r20\n\t"
+      "push r19\n\t"
+      "push r18\n\t"
+      "push r17\n\t"
+      "push r16\n\t"
+      "push r15\n\t"
+      "push r14\n\t"
+      "push r13\n\t"
+      "push r12\n\t"
+      "push r11\n\t"
+      "push r10\n\t"
+      "push r9\n\t"
+      "push r8\n\t"
+      "push r7\n\t"
+      "push r6\n\t"
+      "push r5\n\t"
+      "push r4\n\t"
+      "push r3\n\t"
+      "push r2\n\t"
+      "push r1\n\t"
+      "push r0\n\t"
+      );
+
+  g_task_array[current_running].sp = (unsigned char*) SP;
+  g_task_array[current_running].sreg = SREG;
+
+  //////////////////////////////////////////////////////////////////
+
+  SREG = (unsigned char) g_task_array[0].sreg;
+  SP = (unsigned int) g_task_array[0].sp;
+
+  asm volatile (
+      "pop r0\n\t"
+      "pop r1\n\t"
+      "pop r2\n\t"
+      "pop r3\n\t"
+      "pop r4\n\t"
+      "pop r5\n\t"
+      "pop r6\n\t"
+      "pop r7\n\t"
+      "pop r8\n\t"
+      "pop r9\n\t"
+      "pop r10\n\t"
+      "pop r11\n\t"
+      "pop r12\n\t"
+      "pop r13\n\t"
+      "pop r14\n\t"
+      "pop r15\n\t"
+      "pop r16\n\t"
+      "pop r17\n\t"
+      "pop r18\n\t"
+      "pop r19\n\t"
+      "pop r20\n\t"
+      "pop r21\n\t"
+      "pop r22\n\t"
+      "pop r23\n\t"
+      "pop r24\n\t"
+      "pop r25\n\t"
+      "pop r26\n\t"
+      "pop r27\n\t"
+      "pop r28\n\t"
+      "pop r29\n\t"
+      "pop r30\n\t"
+      "pop r31\n\t"
+      "ret\n\t"
+      );
+}
+
+
+void __attribute__((naked)) run_task(void)
+{
+  asm volatile (
+      "push r31\n\t"
+      "push r30\n\t"
+      "push r29\n\t"
+      "push r28\n\t"
+      "push r27\n\t"
+      "push r26\n\t"
+      "push r25\n\t"
+      "push r24\n\t"
+      "push r23\n\t"
+      "push r22\n\t"
+      "push r21\n\t"
+      "push r20\n\t"
+      "push r19\n\t"
+      "push r18\n\t"
+      "push r17\n\t"
+      "push r16\n\t"
+      "push r15\n\t"
+      "push r14\n\t"
+      "push r13\n\t"
+      "push r12\n\t"
+      "push r11\n\t"
+      "push r10\n\t"
+      "push r9\n\t"
+      "push r8\n\t"
+      "push r7\n\t"
+      "push r6\n\t"
+      "push r5\n\t"
+      "push r4\n\t"
+      "push r3\n\t"
+      "push r2\n\t"
+      "push r1\n\t"
+      "push r0\n\t"
+      );
+
+  g_task_array[0].sp = (unsigned char*) SP;
+  g_task_array[0].sreg = SREG;
+
+  //////////////////////////////////////////////////////////////////
+
+  SREG = (unsigned char) g_task_array[current_running].sreg;
+  SP = (unsigned int) g_task_array[current_running].sp;
+
+  asm volatile (
+      "pop r0\n\t"
+      "pop r1\n\t"
+      "pop r2\n\t"
+      "pop r3\n\t"
+      "pop r4\n\t"
+      "pop r5\n\t"
+      "pop r6\n\t"
+      "pop r7\n\t"
+      "pop r8\n\t"
+      "pop r9\n\t"
+      "pop r10\n\t"
+      "pop r11\n\t"
+      "pop r12\n\t"
+      "pop r13\n\t"
+      "pop r14\n\t"
+      "pop r15\n\t"
+      "pop r16\n\t"
+      "pop r17\n\t"
+      "pop r18\n\t"
+      "pop r19\n\t"
+      "pop r20\n\t"
+      "pop r21\n\t"
+      "pop r22\n\t"
+      "pop r23\n\t"
+      "pop r24\n\t"
+      "pop r25\n\t"
+      "pop r26\n\t"
+      "pop r27\n\t"
+      "pop r28\n\t"
+      "pop r29\n\t"
+      "pop r30\n\t"
+      "pop r31\n\t"
+      "ret\n\t"
+      );
+}
 
 /****************************************************************************
  * Name: task_create
@@ -91,6 +255,31 @@ int task_create(const char *task_name, void (*entry_point)(void*), void *arg)
   g_task_array[i].arg = arg;
   kstrncpy(g_task_array[i].name, task_name, CONFIG_TASK_MAX_NAME + 1);
 
+
+#define stack_size 256
+  //task SP
+  g_task_array[i].sp = (unsigned char *) stack_global;
+
+  //clear stack
+/*  for (int i = 0; i < stack_size; i++)
+    {
+      *((unsigned char*) g_task_array[i].sp - i) = 0;
+    }*/
+
+  //init empty context : Clean Run
+  //put return address to point to entry point fun
+  *g_task_array[i].sp-- = ((unsigned char) ((unsigned int)entry_point));
+  *g_task_array[i].sp-- = (unsigned char) (((unsigned int)entry_point) >> 8);
+
+  //placeholder for R0-R31 registers
+  g_task_array[i].sp -= 32;
+
+  //sreg = 0;
+  g_task_array[i].sreg = 0;
+
+  // set stack section for next task
+  stack_global -= stack_size;
+
   return 1;
 }
 
@@ -130,7 +319,7 @@ int task_getnext(task_t **task)
 
   if (*task == NULL)
     {
-      idx = 0;
+      idx = 1;
     }
   else
     {

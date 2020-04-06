@@ -75,10 +75,12 @@ int scheduler(kernel_event_t *event)
                g_running_task = task;
                task->hit++;
                task->state = TASK_STATE_RUNNING;
-               task_main = (void(*)(void*)) task->entry_point;
-               task_main(task->arg);
+               //task_main = (void(*)(void*)) task->entry_point;
+               //task_main(task->arg);
+               current_running = task->idx;
+               run_task();
                g_running_task = NULL;
-
+               current_running = 1;
                /* Re-mark it as READY if there was no request
                 * to change the state.
                 *

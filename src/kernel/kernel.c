@@ -10,6 +10,13 @@
  * Included Files.
  ****************************************************************************/
 
+#include <avr/io.h>
+#include <avr/common.h>
+#include <inttypes.h>
+#include <avr/io.h>
+#include <avr/interrupt.h>
+extern volatile unsigned char *stack_global;
+
 #include "config.h"
 #include "arch.h"
 #include "cpu.h"
@@ -311,9 +318,10 @@ void kput_event(unsigned char type, void * data)
  *    This should be called at the beginning of main();
  *
  ****************************************************************************/
-
+extern int current_running;
 void kernel_init(void)
 {
+  //current_running = 1;
   g_systicks = 0;
   kmemset((void*) &g_kevent_buffer, 0, sizeof(g_kevent_buffer));
 
@@ -321,6 +329,11 @@ void kernel_init(void)
 
   configure_systick();
   configure_watchdog();
+
+  stack_global = (unsigned char*) SP;
+  stack_global -= 100;
+
+  task_create("Kernel", kernel_event_loop, NULL);
 }
 
 
