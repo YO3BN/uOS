@@ -120,9 +120,10 @@ void kernel_start(void);
  *    Configure and insert it into kernel's task list/array.
  *
  * Input Parameters:
- *    task_name - Short name of task. See, CONFIG_TASK_MAX_NAME.
- *    entry_point - Pointer to task's main function.
+ *    name - Short name of task. See, CONFIG_TASK_MAX_NAME.
+ *    func - Pointer to task's main function.
  *    arg - Given argument for the task.
+ *    stack_size - Stack size in bytes.
  *
  * Returned Value:
  *    1 - For success.
@@ -133,7 +134,8 @@ void kernel_start(void);
  *
  ****************************************************************************/
 
-int task_create(const char *task_name, void (*entry_point)(void*), void *arg);
+int task_create(const char *name, void (*func)(void*),
+                void *arg, int stack_size);
 
 
 /****************************************************************************

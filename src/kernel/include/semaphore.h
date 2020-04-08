@@ -20,7 +20,7 @@ typedef volatile struct
 {
   int resources;                      /* Free resources into the semaphore. */
   queue_t waiting_tasks;              /* Queue object for task IDs array. */
-  unsigned task_id[CONFIG_MAX_TASKS]; /* Array storing task IDs. */
+  unsigned task_id[CONFIG_SEM_MAX_TASKS]; /* Array storing task IDs. */
 } semaphore_t;
 
 
