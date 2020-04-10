@@ -18,6 +18,12 @@ void arch_enable_interrupts(void);
 void arch_disable_interrupts(void);
 void arch_go_idle(void);
 
+/* Context-Switch */
+#include "context.h"
+
+/* Stack. */
+void stack_init(void **stack);
+
 /* Timers. */
 void arch_reset_watchdog(void);
 void arch_start_watchdog(void);

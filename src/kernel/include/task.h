@@ -8,9 +8,10 @@
 #ifndef TASK_H_
 #define TASK_H_
 
-
 #include "config.h"
 
+
+/* A task can enter into the following states. */
 
 typedef enum
 {
@@ -26,25 +27,42 @@ typedef enum
 } task_state_t;
 
 
-typedef struct
+/*
+ * This structure will be stored at the beginning of the stack on each task.
+ * Also, known as Task Control Block or TCB.
+ * Therefore, the nodes on task list will point directly to this structure,
+ * implicitly to the beginning of the stack address of the task.
+ */
+
+typedef struct task
 {
-  char name[CONFIG_TASK_MAX_NAME + 1];
-  void *arg;
-  void *saved_data;
-  void *entry_point;
-
-  unsigned int tid;
-  unsigned int idx;
-  unsigned int hit;
-
-  unsigned long wakeup_ticks;
-
-  task_state_t state;
-  task_state_t last_state;
+  char name[CONFIG_TASK_MAX_NAME + 1];  /* Task Name String. */
+  void *arg;                            /* Pointer to given argument. */
+  unsigned char *stack_pointer;         /* Saved Stack Pointer. */
+  unsigned int stack_size;              /* Configured Stack Size. */
+  unsigned int id;                      /* Task ID. */
+  unsigned long wakeup_ticks;           /* Time when the task will be woken. */
+  task_state_t state;                   /* Task State (sleeping, waiting). */
+  task_state_t last_state;              //TODO to be removed?
+  struct task *next;                    /* Pointer to next task. */
 } task_t;
 
 
-extern task_t *g_running_task;
+/* Pointer to first node the in task list.
+ * The first task, or id 0 is the kernel itself.
+ */
+
+extern volatile task_t *g_task_list_head;
+
+
+/* Global pointer to the current running task. */
+
+extern volatile task_t *g_running_task;
+
+
+/* Global Stack Pointer. */
+
+extern volatile unsigned char *g_stack_pointer;
 
 
 /****************************************************************************
@@ -55,9 +73,10 @@ extern task_t *g_running_task;
  *    Configure and insert it into kernel's task list/array.
  *
  * Input Parameters:
- *    task_name - Short name of task. See, CONFIG_TASK_MAX_NAME.
- *    entry_point - Pointer to task's main function.
+ *    name - Short name of task. See, CONFIG_TASK_MAX_NAME.
+ *    func - Pointer to task's main function.
  *    arg - Given argument for the task.
+ *    stack_size - Stack size in bytes.
  *
  * Returned Value:
  *    1 - For success.
@@ -68,7 +87,8 @@ extern task_t *g_running_task;
  *
  ****************************************************************************/
 
-int task_create(const char *task_name, void (*entry_point)(void*), void *arg);
+int task_create(const char *name, void (*func)(void*),
+                void *arg, int stack_size);
 
 
 /****************************************************************************

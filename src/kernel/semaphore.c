@@ -42,7 +42,7 @@ void sem_init(semaphore_t *sem)
     }
 
   sem->resources = 0;
-  kmemset((void*) sem->task_id, 0, CONFIG_MAX_TASKS);
+  kmemset((void*) sem->task_id, 0, CONFIG_SEM_MAX_TASKS);
   kqueue_init((queue_t*) &sem->waiting_tasks, (int*) sem->task_id,
               sizeof(sem->task_id), sizeof(sem->task_id[0]));
 }
@@ -77,7 +77,7 @@ void sem_init(semaphore_t *sem)
 SEM_STATUS_T sem_take(semaphore_t *sem, SEM_WAIT_T wait)
 {
   SEM_STATUS_T retval = SEM_STATUS_ERROR;
-  task_t *task = g_running_task;
+  task_t *task = (task_t*) g_running_task;
 
   if (!sem || !task)
     {
@@ -94,7 +94,7 @@ SEM_STATUS_T sem_take(semaphore_t *sem, SEM_WAIT_T wait)
     {
       if (wait)
         {
-          kenqueue((queue_t*) &sem->waiting_tasks, &task->tid);
+          kenqueue((queue_t*) &sem->waiting_tasks, &task->id);
           task->state = TASK_STATE_SEM_WAIT;
           retval = SEM_STATUS_WAIT;
         }
@@ -193,7 +193,7 @@ int semaphores(kernel_event_t *event)
 {
   semaphore_t *sem;
   task_t *task = NULL;
-  unsigned tid = 0;
+  unsigned id = 0;
   int retval;
 
   if (!event)
@@ -215,7 +215,7 @@ int semaphores(kernel_event_t *event)
   /* Get the waiting task for this semaphore. */
 
   disable_interrupts();
-  retval = kdequeue((queue_t*) &sem->waiting_tasks, &tid);
+  retval = kdequeue((queue_t*) &sem->waiting_tasks, &id);
   enable_interrupts();
 
   /* If there is nothing in the waiting queue, then some module gave the
@@ -224,7 +224,7 @@ int semaphores(kernel_event_t *event)
 
   if (retval)
     {
-      task = task_getby_id(tid);
+      task = task_getby_id(id);
 
       /* Check if task is still alive. */
 

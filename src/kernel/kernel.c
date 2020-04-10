@@ -16,9 +16,11 @@
 #include "private.h"
 #include "kernel.h"
 #include "timers.h"
+#include "task.h"
 #include "scheduler.h"
 #include "semaphore.h"
 #include "klib.h"
+#include "context.h"
 
 
 /****************************************************************************
@@ -314,13 +316,29 @@ void kput_event(unsigned char type, void * data)
 
 void kernel_init(void)
 {
-  g_systicks = 0;
+  /* Initialize global variables. */
+
+  g_systicks        = 0;
+  g_stack_head      = NULL;
+  g_task_list_head  = NULL;
+  g_running_task    = NULL;
+
+  /* Clear buffers. */
+
   kmemset((void*) &g_kevent_buffer, 0, sizeof(g_kevent_buffer));
 
   /* Configure timers. */
 
   configure_systick();
   configure_watchdog();
+
+  /* Read architecture specific stack properties. */
+
+  stack_init((void**) &g_stack_head);
+
+  /* Create kernel task. */
+
+  task_create("Kernel", (void(*)(void*)) &kernel_event_loop, NULL, 0);
 }
 
 
@@ -354,8 +372,7 @@ void kernel_start(void)
   start_watchdog();
   start_systick();
 
-  /* Start Event Finite State Machine. */
+  /* Start the kernel main loop. */
 
-  kernel_event_loop();
+  exec_kernel();
 }
-
