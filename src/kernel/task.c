@@ -18,20 +18,22 @@
 #include "task.h"
 #include "timers.h"
 #include "klib.h"
+#include "context.h"
 
 
 /****************************************************************************
  * Public globals.
  ****************************************************************************/
 
-task_t *g_running_task;
+volatile task_t *g_task_list_head;
+volatile task_t *g_running_task;
+volatile unsigned char *g_stack_pointer;
+volatile unsigned char *g_stack_head;
 
 
 /****************************************************************************
  * Private globals.
  ****************************************************************************/
-
-static task_t g_task_array[CONFIG_MAX_TASKS];
 
 
 /****************************************************************************
@@ -47,9 +49,11 @@ static task_t g_task_array[CONFIG_MAX_TASKS];
  *    Configure and insert it into kernel's task list/array.
  *
  * Input Parameters:
- *    task_name - Short name of task. See, CONFIG_TASK_MAX_NAME.
- *    entry_point - Pointer to task's main function.
+ *    name - Short name of task. See, CONFIG_TASK_MAX_NAME.
+ *    func - Pointer to task's main function.
  *    arg - Given argument for the task.
+ *    stack_size - Stack size in bytes. If no size was specified, default
+ *        stack size value is used.
  *
  * Returned Value:
  *    1 - For success.
@@ -60,36 +64,101 @@ static task_t g_task_array[CONFIG_MAX_TASKS];
  *
  ****************************************************************************/
 
-int task_create(const char *task_name, void (*entry_point)(void*), void *arg)
+int task_create(const char *name, void (*func)(void*),
+                void *arg, int stack_size)
 {
   int i;
+  int id;
+  int stack_used;
+  task_t *task = NULL;
+  task_t *prev_task = NULL;
 
-  if (!entry_point || !task_name)
+  /* Sanity Checks. */
+
+  if (!func || !name)
     {
       return 0;
     }
 
-  /* Find the first free array element. */
+  /* If the task creation was requested to have no stack size,
+   * the default value of the stack size will be used.
+   */
 
-  for (i = 0; i < CONFIG_MAX_TASKS &&
-      g_task_array[i].state != TASK_STATE_INVALID &&
-      g_task_array[i].state != TASK_STATE_EXITED; i++);
-
-  /* Check if array is full. */
-
-  if (i >= CONFIG_MAX_TASKS)
+  if (!stack_size)
     {
-      return 0;
+      stack_size = CONFIG_STACK_DEFAULT_SIZE;
     }
 
-  /* Create/copy task attributes. */
+  /* TODO Find first a free stack space which fulfill the space
+   * required for the stack size of this task.
+   */
 
-  g_task_array[i].idx = i;
-  g_task_array[i].tid = i + 1; // TODO FIXME overflow here
-  g_task_array[i].state = TASK_STATE_READY;
-  g_task_array[i].entry_point = entry_point;
-  g_task_array[i].arg = arg;
-  kstrncpy(g_task_array[i].name, task_name, CONFIG_TASK_MAX_NAME + 1);
+  id = 0;
+  stack_used = 0;
+  task = (task_t*) g_task_list_head;
+
+  while (task)
+    {
+      stack_used += task->stack_size + sizeof(task_t);
+      prev_task = task;
+      task = task->next;
+      id++;
+    }
+
+  /* Setup the task. */
+
+  task = (task_t*) (g_stack_head - stack_used - sizeof(task_t) + 1);
+  task->next = NULL;
+  task->id = id;
+  task->arg = arg;
+  task->state = TASK_STATE_READY;
+  task->stack_size = stack_size;
+  task->stack_pointer = (unsigned char*) (g_stack_head - stack_used - sizeof(task_t));
+  kstrncpy(task->name, name, CONFIG_TASK_MAX_NAME + 1);
+
+  /* Make previous task to point to this new one. */
+
+  if (prev_task)
+    {
+      prev_task->next = task;
+    }
+
+  /* If no task were created so far, make the head of task list to
+   * point to this task.
+   */
+
+  if (!g_task_list_head)
+    {
+      g_task_list_head = task;
+    }
+
+  /* Clear stack for the new task. */
+
+  for (i = 0; i < stack_size; i++)
+    {
+      *(task->stack_pointer - i) = 0;
+    }
+
+  /* Since the tasks are always executed with context-switch and NOT by simply
+   * calling the function, here a clean context is created onto the stack
+   * and the function pointer set as the return address.
+   *
+   * Thus, at first run, the registers are popped from the stack,
+   * containing zeroes, since they were previously cleared, then the returning
+   * address represents actually the function pointer, which in this case
+   * enter to function itself for the first run.
+   */
+
+  //TODO these are architecture dependent. Move them in arch!!
+
+  /* Put the return address to point to task function pointer. */
+
+  *task->stack_pointer-- = ((unsigned char) ((unsigned int)func));
+  *task->stack_pointer-- = (unsigned char) (((unsigned int)func) >> 8);
+
+  /* Simulate, clean registers were pushed already onto the stack. */
+
+  task->stack_pointer -= 32 + 1; // R0-R31 + SREG
 
   return 1;
 }
@@ -119,41 +188,32 @@ int task_create(const char *task_name, void (*entry_point)(void*), void *arg)
 
 int task_getnext(task_t **task)
 {
-  int idx;
-
   if (!task)
     {
       return 0;
     }
 
-  /* If the *task is NULL, then go for the first task. TODO recomment this */
+  /* If the *task is given NULL, it means that first task is requested.
+   * Also, skip the first task, the kernel.
+   */
 
-  if (*task == NULL)
+  if (!(*task))
     {
-      idx = 0;
-    }
-  else
-    {
-      idx = (*task)->idx + 1;
+      *task = (task_t*) g_task_list_head;
     }
 
-  /* Check to not exceed array boundary. */
+  /* Move pointer to next task in the list. */
 
-  if (idx >= CONFIG_MAX_TASKS)
+  *task = (*task)->next;
+
+  /* Check  for return value. */
+
+  if (*task)
     {
-      *task = NULL;
-      return 0;
+      return 1;
     }
 
-  if (g_task_array[idx].state == TASK_STATE_INVALID)
-    {
-      *task = NULL;
-      return 0;
-    }
-
-  *task = &g_task_array[idx];
-
-  return 1;
+  return 0;
 }
 
 
@@ -164,7 +224,7 @@ int task_getnext(task_t **task)
  *    Get a pointer to a task specifying the task id.
  *
  * Input Parameters:
- *    tid - Given task ID.
+ *    id - Given task ID.
  *
  * Returned Value:
  *    Valid pointer to task - For success.
@@ -174,18 +234,18 @@ int task_getnext(task_t **task)
  *
  ****************************************************************************/
 
-task_t *task_getby_id(int tid)
+task_t *task_getby_id(int id)
 {
   task_t *task = NULL;
 
-  if (!tid)
+  if (!id)
     {
       return NULL;
     }
 
   while (task_getnext(&task))
     {
-      if (task->tid == tid)
+      if (task->id == id)
         {
           break;
         }
@@ -233,6 +293,7 @@ task_t *task_getby_name(const char *name)
   return task;
 }
 
+
 /****************************************************************************
  * Name: task_getname
  *
@@ -240,7 +301,7 @@ task_t *task_getby_name(const char *name)
  *    Get a pointer to a task name specifying the task id.
  *
  * Input Parameters:
- *    tid - Given task ID.
+ *    id - Given task ID.
  *
  * Returned Value:
  *    Valid pointer to task name.
@@ -250,16 +311,16 @@ task_t *task_getby_name(const char *name)
  *
  ****************************************************************************/
 
-char *const task_getname(int tid)
+char *const task_getname(int id)
 {
   task_t *task = NULL;
 
-  if (!tid)
+  if (!id)
     {
-      tid = task_getid();
+      id = task_getid();
     }
 
-  task = task_getby_id(tid);
+  task = task_getby_id(id);
 
   if (!task)
     {
@@ -277,7 +338,7 @@ char *const task_getname(int tid)
  *    Resume a task specifying the task id.
  *
  * Input Parameters:
- *    tid - Given task ID.
+ *    id - Given task ID.
  *
  * Returned Value:
  *    1 - For success.
@@ -287,17 +348,17 @@ char *const task_getname(int tid)
  *
  ****************************************************************************/
 
-int task_resume(int tid)
+int task_resume(int id)
 {
   int ret = 0;
   task_t *task = NULL;
 
-  if (!tid)
+  if (!id)
     {
-      tid = task_getid();
+      id = task_getid();
     }
 
-  task = task_getby_id(tid);
+  task = task_getby_id(id);
 
   if (task)
     {
@@ -319,7 +380,7 @@ int task_resume(int tid)
  *    Pause a task specifying the task id.
  *
  * Input Parameters:
- *    tid - Given task ID.
+ *    id - Given task ID.
  *
  * Returned Value:
  *    1 - For success.
@@ -329,16 +390,16 @@ int task_resume(int tid)
  *
  ****************************************************************************/
 
-int task_pause(int tid)
+int task_pause(int id)
 {
   task_t *task = NULL;
 
-  if (!tid)
+  if (!id)
     {
-      tid = task_getid();
+      id = task_getid();
     }
 
-  task = task_getby_id(tid);
+  task = task_getby_id(id);
 
   if (task)
     {
@@ -358,7 +419,7 @@ int task_pause(int tid)
  *    Destroy a task specifying the task id.
  *
  * Input Parameters:
- *    tid - Given task ID.
+ *    id - Given task ID.
  *
  * Returned Value:
  *    1 - For success.
@@ -368,16 +429,18 @@ int task_pause(int tid)
  *
  ****************************************************************************/
 
-int task_destroy(int tid)
+int task_destroy(int id)
 {
+  // TODO Not supported yet -> Removing from stack.
+#if 0
   task_t *task = NULL;
 
-  if (!tid)
+  if (!id)
     {
-      tid = task_getid();
+      id = task_getid();
     }
 
-  task = task_getby_id(tid);
+  task = task_getby_id(id);
 
   if (task)
     {
@@ -386,12 +449,12 @@ int task_destroy(int tid)
        * anymore by name or id.
        */
 
-      task->tid = 0;
+      task->id = 0;
       task->state = TASK_STATE_EXITED;
       kmemset(task->name, 0, CONFIG_TASK_MAX_NAME + 1);
       return 1;
     }
-
+#endif
   return 0;
 }
 
@@ -403,7 +466,7 @@ int task_destroy(int tid)
  *    Put a task in sleep mode specifying the task id.
  *
  * Input Parameters:
- *    tid - Given task ID.
+ *    id - Given task ID.
  *    ticks - Number of ticks to sleep.
  *
  * Returned Value:
@@ -414,16 +477,16 @@ int task_destroy(int tid)
  *
  ****************************************************************************/
 
-int task_sleep(unsigned int tid, const unsigned int ticks)
+int task_sleep(unsigned int id, const unsigned int ticks)
 {
   task_t *task;
 
-  if (!tid)
+  if (!id)
     {
-      tid = task_getid();
+      id = task_getid();
     }
 
-  task = task_getby_id(tid);
+  task = task_getby_id(id);
 
   if (task)
     {
@@ -461,7 +524,7 @@ unsigned int task_getid(void)
       return 0;
     }
 
-  return g_running_task->tid;
+  return g_running_task->id;
 }
 
 
@@ -484,7 +547,7 @@ unsigned int task_getid(void)
 
 unsigned int task_getidby_name(const char *name)
 {
-  unsigned int tid = 0;
+  unsigned int id = 0;
   task_t *task = NULL;
 
   if (!name)
@@ -496,11 +559,11 @@ unsigned int task_getidby_name(const char *name)
     {
       if (kstreq(name, task->name))
         {
-          tid = task->tid;
+          id = task->id;
           break;
         }
     }
 
-  return tid;
+  return id;
 }
 

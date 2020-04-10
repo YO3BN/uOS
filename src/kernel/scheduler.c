@@ -19,6 +19,7 @@
 #include "timers.h"
 #include "scheduler.h"
 #include "semaphore.h"
+#include "context.h"
 
 
 /****************************************************************************
@@ -49,7 +50,6 @@ int scheduler(kernel_event_t *event)
   int work_todo  = 0;
 
   task_t *task = NULL;
-  void (*task_main)(void*);
 
   /* Do all possible work for the received event,
    * most likely until all tasks are blocked/waiting/sleeping.
@@ -73,11 +73,9 @@ int scheduler(kernel_event_t *event)
                /* Run the task, also mark it as RUNNING. */
 
                g_running_task = task;
-               task->hit++;
                task->state = TASK_STATE_RUNNING;
-               task_main = (void(*)(void*)) task->entry_point;
-               task_main(task->arg);
-               g_running_task = NULL;
+               context_switch_to_task();
+               g_running_task = g_task_list_head;
 
                /* Re-mark it as READY if there was no request
                 * to change the state.
