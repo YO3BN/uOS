@@ -18,14 +18,17 @@
 #include "task.h"
 #include "timers.h"
 #include "klib.h"
+#include "context.h"
 
 
 /****************************************************************************
  * Public globals.
  ****************************************************************************/
 
-task_t *task_list_head;
-task_t *g_running_task;
+volatile task_t *g_task_list_head;
+volatile task_t *g_running_task;
+volatile unsigned char *g_stack_pointer;
+volatile unsigned char *g_stack_head;
 
 
 /****************************************************************************
@@ -37,170 +40,6 @@ task_t *g_running_task;
  * Public functions.
  ****************************************************************************/
 
-void __attribute__((naked)) yield(void)
-{
-  asm volatile (
-      "push r31\n\t"
-      "push r30\n\t"
-      "push r29\n\t"
-      "push r28\n\t"
-      "push r27\n\t"
-      "push r26\n\t"
-      "push r25\n\t"
-      "push r24\n\t"
-      "push r23\n\t"
-      "push r22\n\t"
-      "push r21\n\t"
-      "push r20\n\t"
-      "push r19\n\t"
-      "push r18\n\t"
-      "push r17\n\t"
-      "push r16\n\t"
-      "push r15\n\t"
-      "push r14\n\t"
-      "push r13\n\t"
-      "push r12\n\t"
-      "push r11\n\t"
-      "push r10\n\t"
-      "push r9\n\t"
-      "push r8\n\t"
-      "push r7\n\t"
-      "push r6\n\t"
-      "push r5\n\t"
-      "push r4\n\t"
-      "push r3\n\t"
-      "push r2\n\t"
-      "push r1\n\t"
-      "push r0\n\t"
-      );
-
-  g_running_task->stack_pointer = (unsigned char*) SP;
-  g_running_task->status_register = SREG;
-
-  //////////////////////////////////////////////////////////////////
-
-  SREG = (unsigned char) task_list_head->status_register;
-  SP = (unsigned int) task_list_head->stack_pointer;
-
-  asm volatile (
-      "pop r0\n\t"
-      "pop r1\n\t"
-      "pop r2\n\t"
-      "pop r3\n\t"
-      "pop r4\n\t"
-      "pop r5\n\t"
-      "pop r6\n\t"
-      "pop r7\n\t"
-      "pop r8\n\t"
-      "pop r9\n\t"
-      "pop r10\n\t"
-      "pop r11\n\t"
-      "pop r12\n\t"
-      "pop r13\n\t"
-      "pop r14\n\t"
-      "pop r15\n\t"
-      "pop r16\n\t"
-      "pop r17\n\t"
-      "pop r18\n\t"
-      "pop r19\n\t"
-      "pop r20\n\t"
-      "pop r21\n\t"
-      "pop r22\n\t"
-      "pop r23\n\t"
-      "pop r24\n\t"
-      "pop r25\n\t"
-      "pop r26\n\t"
-      "pop r27\n\t"
-      "pop r28\n\t"
-      "pop r29\n\t"
-      "pop r30\n\t"
-      "pop r31\n\t"
-      "ret\n\t"
-      );
-}
-
-
-void __attribute__((naked)) run_task(void)
-{
-  asm volatile (
-      "push r31\n\t"
-      "push r30\n\t"
-      "push r29\n\t"
-      "push r28\n\t"
-      "push r27\n\t"
-      "push r26\n\t"
-      "push r25\n\t"
-      "push r24\n\t"
-      "push r23\n\t"
-      "push r22\n\t"
-      "push r21\n\t"
-      "push r20\n\t"
-      "push r19\n\t"
-      "push r18\n\t"
-      "push r17\n\t"
-      "push r16\n\t"
-      "push r15\n\t"
-      "push r14\n\t"
-      "push r13\n\t"
-      "push r12\n\t"
-      "push r11\n\t"
-      "push r10\n\t"
-      "push r9\n\t"
-      "push r8\n\t"
-      "push r7\n\t"
-      "push r6\n\t"
-      "push r5\n\t"
-      "push r4\n\t"
-      "push r3\n\t"
-      "push r2\n\t"
-      "push r1\n\t"
-      "push r0\n\t"
-      );
-
-  task_list_head->stack_pointer = (unsigned char*) SP;
-  task_list_head->status_register = SREG;
-
-  //////////////////////////////////////////////////////////////////
-
-  SREG = (unsigned char) g_running_task->status_register;
-  SP = (unsigned int) g_running_task->stack_pointer;
-
-  asm volatile (
-      "pop r0\n\t"
-      "pop r1\n\t"
-      "pop r2\n\t"
-      "pop r3\n\t"
-      "pop r4\n\t"
-      "pop r5\n\t"
-      "pop r6\n\t"
-      "pop r7\n\t"
-      "pop r8\n\t"
-      "pop r9\n\t"
-      "pop r10\n\t"
-      "pop r11\n\t"
-      "pop r12\n\t"
-      "pop r13\n\t"
-      "pop r14\n\t"
-      "pop r15\n\t"
-      "pop r16\n\t"
-      "pop r17\n\t"
-      "pop r18\n\t"
-      "pop r19\n\t"
-      "pop r20\n\t"
-      "pop r21\n\t"
-      "pop r22\n\t"
-      "pop r23\n\t"
-      "pop r24\n\t"
-      "pop r25\n\t"
-      "pop r26\n\t"
-      "pop r27\n\t"
-      "pop r28\n\t"
-      "pop r29\n\t"
-      "pop r30\n\t"
-      "pop r31\n\t"
-      "ret\n\t"
-      );
-}
 
 /****************************************************************************
  * Name: task_create
@@ -256,7 +95,7 @@ int task_create(const char *name, void (*func)(void*),
 
   id = 0;
   stack_used = 0;
-  task = task_list_head;
+  task = (task_t*) g_task_list_head;
 
   while (task)
     {
@@ -268,14 +107,13 @@ int task_create(const char *name, void (*func)(void*),
 
   /* Setup the task. */
 
-  task = (task_t*) (stack_head - stack_used - sizeof(task_t) + 1);
+  task = (task_t*) (g_stack_head - stack_used - sizeof(task_t) + 1);
   task->next = NULL;
   task->id = id;
   task->arg = arg;
   task->state = TASK_STATE_READY;
-  task->status_register = 0;
   task->stack_size = stack_size;
-  task->stack_pointer = (unsigned char*) (stack_head - stack_used - sizeof(task_t));
+  task->stack_pointer = (unsigned char*) (g_stack_head - stack_used - sizeof(task_t));
   kstrncpy(task->name, name, CONFIG_TASK_MAX_NAME + 1);
 
   /* Make previous task to point to this new one. */
@@ -289,9 +127,9 @@ int task_create(const char *name, void (*func)(void*),
    * point to this task.
    */
 
-  if (!task_list_head)
+  if (!g_task_list_head)
     {
-      task_list_head = task;
+      g_task_list_head = task;
     }
 
   /* Clear stack for the new task. */
@@ -320,7 +158,7 @@ int task_create(const char *name, void (*func)(void*),
 
   /* Simulate, clean registers were pushed already onto the stack. */
 
-  task->stack_pointer -= 32;
+  task->stack_pointer -= 32 + 1; // R0-R31 + SREG
 
   return 1;
 }
@@ -355,13 +193,13 @@ int task_getnext(task_t **task)
       return 0;
     }
 
-  /* If the *task is given NULL, it means that first task is requested then.
+  /* If the *task is given NULL, it means that first task is requested.
    * Also, skip the first task, the kernel.
    */
 
   if (!(*task))
     {
-      *task = task_list_head;
+      *task = (task_t*) g_task_list_head;
     }
 
   /* Move pointer to next task in the list. */
@@ -454,6 +292,7 @@ task_t *task_getby_name(const char *name)
 
   return task;
 }
+
 
 /****************************************************************************
  * Name: task_getname
