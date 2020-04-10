@@ -19,6 +19,7 @@
 #include "timers.h"
 #include "scheduler.h"
 #include "semaphore.h"
+#include "context.h"
 
 
 /****************************************************************************
@@ -73,8 +74,8 @@ int scheduler(kernel_event_t *event)
 
                g_running_task = task;
                task->state = TASK_STATE_RUNNING;
-               run_task();
-               g_running_task = task_list_head;
+               context_switch_to_task();
+               g_running_task = g_task_list_head;
 
                /* Re-mark it as READY if there was no request
                 * to change the state.

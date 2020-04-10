@@ -77,7 +77,7 @@ void sem_init(semaphore_t *sem)
 SEM_STATUS_T sem_take(semaphore_t *sem, SEM_WAIT_T wait)
 {
   SEM_STATUS_T retval = SEM_STATUS_ERROR;
-  task_t *task = g_running_task;
+  task_t *task = (task_t*) g_running_task;
 
   if (!sem || !task)
     {

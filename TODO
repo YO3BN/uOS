@@ -2,8 +2,6 @@
 - make overall build system
 - deny external access to kernel variables / accessible only by functions.
 - produce / consume systicks, start failsafe context-switch kernel superviser
-- maybe in future remove demo and leave only apps
-- tid different of idx
 - event subscribe for multiple modules/tasks
 - implement archint type (fast integer)
 - think about io,ipc,sem,sched be separate modules dynamically inserted in kconsume_events??
@@ -14,7 +12,6 @@
 - task timer - waiting timer - have to implement semapahores before.
 - task state IPC_WAIT?
 - write about tasks in docs/ how they are ran, fsm, exit/return.
-- task yeld ??
 - semaphore owner??
 - task destroy should enirely remove task from array.
 - edit defined flags in headers.
@@ -37,3 +34,5 @@
 - implement task return raw status; scheduler taking care.
 - implement task_waittask()??
 - implement stdio buffering ?
+- implement preemption
+- implement blocking functions

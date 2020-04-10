@@ -10,13 +10,6 @@
  * Included Files.
  ****************************************************************************/
 
-#include <avr/io.h>
-#include <avr/common.h>
-#include <inttypes.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
-extern volatile unsigned char *stack_global;
-
 #include "config.h"
 #include "arch.h"
 #include "cpu.h"
@@ -27,6 +20,7 @@ extern volatile unsigned char *stack_global;
 #include "scheduler.h"
 #include "semaphore.h"
 #include "klib.h"
+#include "context.h"
 
 
 /****************************************************************************
@@ -322,21 +316,29 @@ void kput_event(unsigned char type, void * data)
 
 void kernel_init(void)
 {
-  g_systicks = 0;
-  task_list_head = NULL;
-  g_running_task = NULL;
+  /* Initialize global variables. */
+
+  g_systicks        = 0;
+  g_stack_head      = NULL;
+  g_task_list_head  = NULL;
+  g_running_task    = NULL;
+
+  /* Clear buffers. */
+
   kmemset((void*) &g_kevent_buffer, 0, sizeof(g_kevent_buffer));
-
-  //TODO move these
-  stack_head = (unsigned char*) SP;
-  stack_head -= CONFIG_STACK_DEFAULT_SIZE;
-
-  task_create("Kernel", (void(*)(void*)) &kernel_event_loop, NULL, 0);
 
   /* Configure timers. */
 
   configure_systick();
   configure_watchdog();
+
+  /* Read architecture specific stack properties. */
+
+  stack_init((void**) &g_stack_head);
+
+  /* Create kernel task. */
+
+  task_create("Kernel", (void(*)(void*)) &kernel_event_loop, NULL, 0);
 }
 
 
@@ -370,52 +372,7 @@ void kernel_start(void)
   start_watchdog();
   start_systick();
 
-  /* Start Event Finite State Machine. */
+  /* Start the kernel main loop. */
 
-//  g_running_task = task_list_head;
-//  run_task();
-//  kernel_event_loop();
-  run_kernel();
-}
-
-void run_kernel(void)
-{
-  SREG = (unsigned char) task_list_head->status_register;
-  SP = (unsigned int) task_list_head->stack_pointer;
-
-  asm volatile (
-      "pop r0\n\t"
-      "pop r1\n\t"
-      "pop r2\n\t"
-      "pop r3\n\t"
-      "pop r4\n\t"
-      "pop r5\n\t"
-      "pop r6\n\t"
-      "pop r7\n\t"
-      "pop r8\n\t"
-      "pop r9\n\t"
-      "pop r10\n\t"
-      "pop r11\n\t"
-      "pop r12\n\t"
-      "pop r13\n\t"
-      "pop r14\n\t"
-      "pop r15\n\t"
-      "pop r16\n\t"
-      "pop r17\n\t"
-      "pop r18\n\t"
-      "pop r19\n\t"
-      "pop r20\n\t"
-      "pop r21\n\t"
-      "pop r22\n\t"
-      "pop r23\n\t"
-      "pop r24\n\t"
-      "pop r25\n\t"
-      "pop r26\n\t"
-      "pop r27\n\t"
-      "pop r28\n\t"
-      "pop r29\n\t"
-      "pop r30\n\t"
-      "pop r31\n\t"
-      "ret\n\t"
-      );
+  exec_kernel();
 }

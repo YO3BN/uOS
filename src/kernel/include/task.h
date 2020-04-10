@@ -8,14 +8,6 @@
 #ifndef TASK_H_
 #define TASK_H_
 
-
-//TODO move these to arch
-#include <avr/io.h>
-#include <avr/common.h>
-#include <inttypes.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
-
 #include "config.h"
 
 
@@ -46,10 +38,9 @@ typedef struct task
 {
   char name[CONFIG_TASK_MAX_NAME + 1];  /* Task Name String. */
   void *arg;                            /* Pointer to given argument. */
-  unsigned char status_register;        /* Saved Status Register. */
   unsigned char *stack_pointer;         /* Saved Stack Pointer. */
   unsigned int stack_size;              /* Configured Stack Size. */
-  unsigned int id;                     /* Task ID. */
+  unsigned int id;                      /* Task ID. */
   unsigned long wakeup_ticks;           /* Time when the task will be woken. */
   task_state_t state;                   /* Task State (sleeping, waiting). */
   task_state_t last_state;              //TODO to be removed?
@@ -61,12 +52,22 @@ typedef struct task
  * The first task, or id 0 is the kernel itself.
  */
 
-extern task_t *task_list_head;
+extern volatile task_t *g_task_list_head;
 
 
-/* Global pointer to the task which is running "now". */
+/* Global pointer to the current running task. */
 
-extern task_t *g_running_task;
+extern volatile task_t *g_running_task;
+
+
+/* Global Stack Pointer. */
+
+extern volatile unsigned char *g_stack_pointer;
+
+
+/* Global stack starting address. */
+
+extern volatile unsigned char *g_stack_head;
 
 
 /****************************************************************************

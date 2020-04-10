@@ -32,7 +32,4 @@ typedef volatile struct
 } kernel_event_t;
 
 
-volatile unsigned char *stack_head;
-
-
 #endif /* SRC_KERNEL_INCLUDE_KERNEL_H_ */
