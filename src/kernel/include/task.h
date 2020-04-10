@@ -65,6 +65,11 @@ extern volatile task_t *g_running_task;
 extern volatile unsigned char *g_stack_pointer;
 
 
+/* Global stack starting address. */
+
+extern volatile unsigned char *g_stack_head;
+
+
 /****************************************************************************
  * Name: task_create
  *
