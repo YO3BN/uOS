@@ -392,6 +392,8 @@ int task_resume(int id)
 
 int task_pause(int id)
 {
+  //TODO Not supported in actual implementation.
+#if 0
   task_t *task = NULL;
 
   if (!id)
@@ -407,7 +409,7 @@ int task_pause(int id)
       task->state = TASK_STATE_PAUSED;
       return 1;
     }
-
+#endif
   return 0;
 }
 
@@ -493,7 +495,12 @@ int task_sleep(unsigned int id, const unsigned int ticks)
       //TODO only if ready or running
       task->state = TASK_STATE_SLEEP;
       task->wakeup_ticks = ticks + g_systicks; // TODO this in critical section
-      return 1;
+
+      /* FIXME Simulate blocking function.
+       * TODO Implement blocking functions.
+       */
+
+      context_switch_to_kernel();
     }
 
   return 0;

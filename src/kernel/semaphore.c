@@ -11,6 +11,7 @@
 #include "kernel_api.h"
 #include "task.h"
 #include "semaphore.h"
+#include "context.h"
 
 
 /****************************************************************************
@@ -85,6 +86,7 @@ SEM_STATUS_T sem_take(semaphore_t *sem, SEM_WAIT_T wait)
       return retval;
     }
 
+again:
   disable_interrupts();
   if (sem->resources > 0)
     {
@@ -105,6 +107,16 @@ SEM_STATUS_T sem_take(semaphore_t *sem, SEM_WAIT_T wait)
         }
     }
   enable_interrupts();
+
+  /* FIXME Simulate blocking function here.
+   * TODO Implement blocking functions.
+   */
+
+  if (retval == SEM_STATUS_WAIT)
+    {
+      context_switch_to_kernel();
+      goto again;
+    }
 
   return retval;
 }
