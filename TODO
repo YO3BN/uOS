@@ -13,7 +13,7 @@
 - task state IPC_WAIT?
 - write about tasks in docs/ how they are ran, fsm, exit/return.
 - semaphore owner??
-- task destroy should enirely remove task from array.
+- task destroy should remove task links from task list.
 - edit defined flags in headers.
 - tickless !!
 - Capitalize words in comments like this: Public Functions. / Private Types.
@@ -37,3 +37,4 @@
 - implement preemption
 - implement blocking functions
 - latest errno value per task ??
+- enabling interrupts in kernel, then disabling next in exec_kernel. Must find a better approach.
