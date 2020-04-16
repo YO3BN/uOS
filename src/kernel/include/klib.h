@@ -237,6 +237,34 @@ int kqueue_init
 
 
 /****************************************************************************
+ * Name: kqueue_init2
+ *
+ * Description:
+ *    Queue initialization version two.
+ *    This function is used to initialize a queue from a non-empty buffer.
+ *    This queue store the data into given array (Queue over Array).
+ *
+ * Parameters:
+ *    queue - Pointer to queue object.
+ *    array - Pointer to storage array.
+ *    array_size - The size of storage array.
+ *    element_size - The size of one element in array.
+ *    used_size - The count of already used elements.
+ *
+ * Returned Value:
+ *    1 - For success.
+ *    0 - If error.
+ *
+ * Assumptions:
+ *    none
+ *
+ ****************************************************************************/
+
+int kqueue_init2(queue_t *queue, void *array, int array_size,
+                 int element_size, int used_size);
+
+
+/****************************************************************************
  * Name: kenqueue
  *
  * Description:
