@@ -38,3 +38,5 @@
 - implement blocking functions
 - latest errno value per task ??
 - enabling interrupts in kernel, then disabling next in exec_kernel. Must find a better approach.
+- generic read/write functions associated with fds or rx/tx queues for drivers?
+- kernel event queue should implement structure attributes based on event types ?

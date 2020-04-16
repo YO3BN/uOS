@@ -9,8 +9,22 @@
 #include <avr/interrupt.h>
 #include "kernel_api.h"
 
+#include "uart.h"
 
 ISR(TIMER1_OVF_vect)
 {
   systick();
 }
+
+
+ISR(USART0_RX_vect)
+{
+  volatile char byte = UDR0;
+  drv_uart_rx_irq(byte);
+}
+
+ISR(USART0_TX_vect)
+{
+  drv_uart_tx_irq();
+}
+

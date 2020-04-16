@@ -49,6 +49,9 @@ void arch_uart_init(void)
   /* CONFIGURE: 8 BIT DATA, 1 STOP BIT, NO PARITY */
   UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);
   UCSR0B = _BV(RXEN0) | _BV(TXEN0);
+
+  /* Enable Interrupts. */
+  UCSR0B |= _BV(RXCIE0) | _BV(TXCIE0);
 }
 
 
@@ -56,7 +59,7 @@ void arch_uart_byte_send(uint8_t c)
 {
   /* wait for empty transmit buffer */
 
-  while (!(UCSR0A & (1 << UDRE0)));
+  //while (!(UCSR0A & (1 << UDRE0)));
 
   /* put data into buffer, sends data */
 
