@@ -61,6 +61,7 @@ typedef enum
  *  none
  *
  * Assumptions:
+ *  Should not be called before kernel initialization.
  *
  ****************************************************************************/
 

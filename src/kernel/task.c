@@ -50,10 +50,10 @@ volatile unsigned char *g_stack_head;
  *
  * Input Parameters:
  *    name - Short name of task. See, CONFIG_TASK_MAX_NAME.
- *    func - Pointer to task's main function.
+ *    func - Pointer to the main function of the task.
  *    arg - Given argument for the task.
  *    stack_size - Stack size in bytes. If no size was specified, default
- *        stack size value is used.
+ *        stack size value is used. See, CONFIG_STACK_DEFAULT_SIZE.
  *
  * Returned Value:
  *    1 - For success.
