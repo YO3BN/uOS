@@ -44,9 +44,7 @@ void sem_init(semaphore_t *sem)
     }
 
   sem->resources = 0;
-  kmemset((void*) sem->task_id, 0, CONFIG_SEM_MAX_TASKS);
-  kqueue_init((queue_t*) &sem->waiting_tasks, (int*) sem->task_id,
-              sizeof(sem->task_id), sizeof(sem->task_id[0]));
+  sem->waiting_task = 0;
 }
 
 
@@ -91,14 +89,14 @@ again:
   disable_interrupts();
   if (sem->resources > 0)
     {
-      sem->resources--;
+      sem->resources = 0;
       retval = SEM_STATUS_TOOK;
     }
   else
     {
       if (wait)
         {
-          kenqueue((queue_t*) &sem->waiting_tasks, &task->id);
+          sem->waiting_task = task->id;
           task->state = TASK_STATE_SEM_WAIT;
           retval = SEM_STATUS_WAIT;
         }
@@ -147,7 +145,7 @@ void sem_giveISR(semaphore_t *sem)
       return;
     }
 
-  sem->resources++;
+  sem->resources = 1;
   kput_event_crit(KERNEL_EVENT_SEM_GIVEN, (void*) sem);
 }
 
@@ -177,7 +175,7 @@ SEM_STATUS_T sem_give(semaphore_t *sem)
     }
 
   disable_interrupts();
-  sem->resources++;
+  sem->resources = 1;
   kput_event_crit(KERNEL_EVENT_SEM_GIVEN, (void*) sem);
   enable_interrupts();
 
@@ -208,7 +206,7 @@ int semaphores(kernel_event_t *event)
   semaphore_t *sem;
   task_t *task = NULL;
   unsigned id = 0;
-  int retval;
+  int retval = 0;
 
   if (!event)
     {
@@ -229,14 +227,14 @@ int semaphores(kernel_event_t *event)
   /* Get the waiting task for this semaphore. */
 
   disable_interrupts();
-  retval = kdequeue((queue_t*) &sem->waiting_tasks, &id);
+  id = sem->waiting_task;
   enable_interrupts();
 
   /* If there is nothing in the waiting queue, then some module gave the
    * semaphore and none is waiting for it.
    */
 
-  if (retval)
+  if (id)
     {
       task = task_getby_id(id);
 
@@ -245,6 +243,7 @@ int semaphores(kernel_event_t *event)
       if (task)
         {
           task->state = TASK_STATE_READY;
+          retval = 1;
         }
     }
 
