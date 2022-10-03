@@ -73,7 +73,7 @@ int scheduler(kernel_event_t *event)
                /* Run the task, also mark it as RUNNING. */
 
                g_running_task = task;
-               task->state = TASK_STATE_RUNNING;
+               g_running_task->state = TASK_STATE_RUNNING;
                context_switch_to_task();
                g_running_task = g_task_list_head;
 
